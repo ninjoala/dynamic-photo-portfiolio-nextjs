@@ -1,7 +1,30 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const ContentSecurityPolicy = `
+  default-src 'self';
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' giscus.app cloud.umami.is umami.emberwood.io;
+  style-src 'self' 'unsafe-inline';
+  img-src * blob: data:;
+  media-src *.s3.amazonaws.com;
+  connect-src *;
+  font-src 'self';
+  frame-src giscus.app;
+`;
+
+const nextConfig: NextConfig = {  
+  async headers() {
+    return [
+      {
+        source: "/(.*)", // Apply to all routes
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: ContentSecurityPolicy.replace(/\n/g, ""), // Remove newlines
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
