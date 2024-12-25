@@ -20,6 +20,16 @@ export interface SiteConfig {
       description: "We tell your love story through stunning images.",
       buttonText: "Book a Wedding Session",
     },
+    newnaneventphotography: {
+      heading: "Welcome to Our Event Photography Services",
+      description: "Explore our range of event photography offerings.",
+      buttonText: "Learn More",
+    },
+    newnansportsphotography: {
+      heading: "Welcome to Our Sports Photography Services",
+      description: "Explore our range of sports photography offerings.",
+      buttonText: "Learn More About Sports Photography",
+    },
     default: {
       heading: "Welcome to Our Photography Services",
       description: "Explore our range of photography offerings.",
