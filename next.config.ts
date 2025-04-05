@@ -12,6 +12,10 @@ const ContentSecurityPolicy = `
 `;
 
 const nextConfig: NextConfig = {  
+  images: {
+    domains: ['picsum.photos'],
+    formats: ['image/avif', 'image/webp'],
+  },
   async headers() {
     return [
       {
