@@ -13,10 +13,6 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# If UPLOADTHING_TOKEN exists as an environment variable
-ARG UPLOADTHING_TOKEN
-ENV UPLOADTHING_TOKEN=${UPLOADTHING_TOKEN}
-
 # Use the regular build command if token is provided, otherwise use production build
 RUN npm run build
    
