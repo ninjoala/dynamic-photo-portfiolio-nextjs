@@ -44,17 +44,19 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   
   // Preload the full-size version of recently viewed thumbnails
   const preloadFullSizeImage = (imageUrl: string) => {
-    if (!imageUrl || preloadedImages.current.has(imageUrl)) return;
+    if (!imageUrl) return;
     
-    // Clean up old preload links to prevent memory leaks
+    // Only preload if we're actually viewing the modal
+    if (!selectedImage) return;
+    
+    // Don't preload if already loaded or preloaded
+    if (preloadedImages.current.has(imageUrl)) return;
+    
+    // Clean up ALL previous preload links to prevent memory leaks and warnings
     const existingLinks = document.head.querySelectorAll('link[rel="preload"][as="image"]');
-    if (existingLinks.length > 10) {
-      existingLinks.forEach((link, index) => {
-        if (index < existingLinks.length - 10) {
-          link.remove();
-        }
-      });
-    }
+    existingLinks.forEach(link => {
+      link.remove();
+    });
 
     preloadedImages.current.add(imageUrl);
     const link = document.createElement('link');
@@ -62,6 +64,11 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     link.as = 'image';
     link.href = imageUrl;
     document.head.appendChild(link);
+    
+    // Set a timeout to remove the preload link if it's not used
+    setTimeout(() => {
+      link.remove();
+    }, 10000); // Remove after 10 seconds if not used
   };
 
   // Load next batch of images
@@ -121,7 +128,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     setImageError(false);
     setSelectedImage(image.url);
     
-    // Only preload the next image
+    // Only preload the next image when actually opening the modal
     const nextImage = visibleImages[index + 1];
     if (nextImage?.url) {
       preloadFullSizeImage(nextImage.url);
@@ -183,10 +190,7 @@ URL: ${url.split('?')[0]}
     setVisibleImages(initialImages.slice(0, IMAGES_PER_PAGE));
     console.log('Initial batch request started:', new Date().toISOString());
     
-    // Only preload the first image initially
-    if (initialImages[0]?.url) {
-      preloadFullSizeImage(initialImages[0].url);
-    }
+    // Don't preload any images initially - wait until user opens modal
   }, [initialImages]);
 
   useEffect(() => {
@@ -207,24 +211,12 @@ URL: ${url.split('?')[0]}
     return () => observer.disconnect();
   }, [initialImages]);
 
-  // Preload on hover with debounce
-  const handleMouseEnter = (image: GalleryImage) => {
-    if (!image.url) return;
-    
-    // Use requestIdleCallback to preload during idle time
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(() => {
-        preloadFullSizeImage(image.url);
-      }, { timeout: 2000 });
-    } else {
-      // Fallback to setTimeout
-      setTimeout(() => {
-        preloadFullSizeImage(image.url);
-      }, 100);
-    }
+  // Remove mouse hover preloading completely
+  const handleMouseEnter = () => {
+    // No preloading on hover
   };
 
-  // Handle keyboard navigation
+  // Update navigation handler to preload next image when navigating 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selectedImage) {
@@ -237,6 +229,12 @@ URL: ${url.split('?')[0]}
           const nextImage = visibleImages[selectedImageIndex + 1];
           if (nextImage?.url) {
             handleThumbnailClick(nextImage);
+            
+            // Only preload the next image after this one (if available)
+            const nextNextImage = visibleImages[selectedImageIndex + 2];
+            if (nextNextImage?.url) {
+              preloadFullSizeImage(nextNextImage.url);
+            }
           }
         } else if (e.key === 'Escape') {
           setSelectedImage(null);
@@ -268,7 +266,7 @@ URL: ${url.split('?')[0]}
               key={image.key}
               className="relative aspect-square cursor-pointer overflow-hidden rounded-lg"
               onClick={() => handleThumbnailClick(image)}
-              onMouseEnter={() => handleMouseEnter(image)}
+              onMouseEnter={() => handleMouseEnter()}
             >
               <Image
                 src={image.thumbnailUrl}
