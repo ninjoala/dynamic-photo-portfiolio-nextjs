@@ -42,7 +42,8 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   // Keep track of already preloaded images - we'll NEVER preload these again
   const alreadyPreloaded = useRef<Set<string>>(new Set());
   
-  // Debug logs that will show on screen
+  // Debug logs only for development mode
+  const isDev = process.env.NODE_ENV === 'development';
   const [perfLogs, setPerfLogs] = useState<Array<{
     timestamp: number,
     action: string,
@@ -51,8 +52,11 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     imageKey?: string
   }>>([]);
   
-  // Add a performance log entry with timing
+  // Add a performance log entry with timing - only in development
   const logPerf = (action: string, message: string, imageKey?: string, duration?: number) => {
+    // Skip all logging in production to save compute
+    if (!isDev) return;
+    
     const timestamp = Date.now();
     setPerfLogs(prev => [
       { timestamp, action, message, imageKey, duration },
@@ -289,6 +293,9 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
       setIsLoading(false);
     }
     
+    // Skip metric tracking in production
+    if (!isDev) return;
+    
     const metric = metricsRef.current.get(url);
     if (metric && !metric.reported) {  // Only report each image once
       metric.loadTime = now - metric.loadStartTime;
@@ -315,8 +322,11 @@ URL: ${url.split('?')[0]}
     }
   };
 
-  // Track image load start
+  // Track image load start - skip in production
   const handleImageLoadStart = (url: string, batchNum?: number) => {
+    // Skip metric tracking in production
+    if (!isDev) return;
+    
     if (!metricsRef.current.has(url)) {  // Only track first load attempt
       const now = performance.now();
       metricsRef.current.set(url, {
@@ -466,26 +476,28 @@ URL: ${url.split('?')[0]}
 
   return (
     <div>
-      {/* Performance Debug Panel */}
-      <div className="fixed bottom-4 left-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
-        <h3 className="font-bold mb-2">Performance Logs:</h3>
-        <div className="space-y-1 text-xs font-mono">
-          {perfLogs.map((log, i) => (
-            <div key={i} className={`p-1 ${
-              log.action.includes('ERROR') || log.action.includes('SLOW') || log.action.includes('DELAY') ? 
-                'bg-red-900/50' : 
-                log.action.includes('COMPLETE') ? 'bg-green-900/50' : ''
-            }`}>
-              <span className="text-gray-400">{new Date(log.timestamp).toISOString().split('T')[1].slice(0, -1)}</span>
-              {' | '}
-              <span className="text-yellow-300 font-bold">{log.action}</span>
-              {' | '}
-              <span>{log.message}</span>
-              {log.duration && <span className="text-cyan-300"> [{log.duration.toFixed(0)}ms]</span>}
-            </div>
-          ))}
+      {/* Performance Debug Panel - Only in development */}
+      {isDev && (
+        <div className="fixed bottom-4 left-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
+          <h3 className="font-bold mb-2">Performance Logs:</h3>
+          <div className="space-y-1 text-xs font-mono">
+            {perfLogs.map((log, i) => (
+              <div key={i} className={`p-1 ${
+                log.action.includes('ERROR') || log.action.includes('SLOW') || log.action.includes('DELAY') ? 
+                  'bg-red-900/50' : 
+                  log.action.includes('COMPLETE') ? 'bg-green-900/50' : ''
+              }`}>
+                <span className="text-gray-400">{new Date(log.timestamp).toISOString().split('T')[1].slice(0, -1)}</span>
+                {' | '}
+                <span className="text-yellow-300 font-bold">{log.action}</span>
+                {' | '}
+                <span>{log.message}</span>
+                {log.duration && <span className="text-cyan-300"> [{log.duration.toFixed(0)}ms]</span>}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {visibleImages.map((image, index) => (
