@@ -40,6 +40,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const [metrics, setMetrics] = useState<string[]>([]);
   const batchStartTimeRef = useRef<number>(0);
   const preloadedImages = useRef<Set<string>>(new Set());
+  const isLoadingBatch = useRef(false);
   
   // Preload the full-size version of recently viewed thumbnails
   const preloadFullSizeImage = (imageUrl: string) => {
@@ -63,6 +64,53 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     document.head.appendChild(link);
   };
 
+  // Load next batch of images
+  const loadNextBatch = async () => {
+    if (!isLoadingBatch.current) {
+      isLoadingBatch.current = true;
+      try {
+        const nextBatchNum = currentPage.current + 1;
+        const startIdx = currentPage.current * IMAGES_PER_PAGE;
+        const endIdx = startIdx + IMAGES_PER_PAGE;
+        
+        // Check if we have more images to load
+        if (startIdx >= initialImages.length) {
+          return;
+        }
+        
+        batchStartTimeRef.current = performance.now();
+        console.log(`Batch ${nextBatchNum} request started:`, new Date().toISOString());
+        
+        const nextBatch = initialImages.slice(startIdx, endIdx);
+        if (nextBatch.length > 0) {
+          // Pre-initialize metrics for the batch
+          nextBatch.forEach(img => {
+            if (img.thumbnailUrl) {
+              handleImageLoadStart(img.thumbnailUrl, nextBatchNum);
+            }
+          });
+          
+          setVisibleImages(prev => [...prev, ...nextBatch]);
+          currentPage.current = nextBatchNum;
+        }
+      } finally {
+        // Reset loading flag after a short delay to prevent rapid retriggering
+        setTimeout(() => {
+          isLoadingBatch.current = false;
+        }, 500);
+      }
+    }
+  };
+
+  // Check if we need to load more images
+  const checkAndLoadMoreImages = () => {
+    // If we're within 3 images of the end of our loaded images, load more
+    const remainingImages = visibleImages.length - (selectedImageIndex + 1);
+    if (remainingImages <= 3 && selectedImageIndex !== -1) {
+      loadNextBatch();
+    }
+  };
+
   // Handle thumbnail click with preloading
   const handleThumbnailClick = (image: GalleryImage) => {
     if (!image.url) return;
@@ -78,6 +126,9 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     if (nextImage?.url) {
       preloadFullSizeImage(nextImage.url);
     }
+
+    // Check if we need to load more images
+    checkAndLoadMoreImages();
   };
 
   // Track image load complete
@@ -111,13 +162,13 @@ URL: ${url.split('?')[0]}
   };
 
   // Track image load start
-  const handleImageLoadStart = (url: string) => {
+  const handleImageLoadStart = (url: string, batchNum?: number) => {
     if (!metricsRef.current.has(url)) {  // Only track first load attempt
       const now = performance.now();
       metricsRef.current.set(url, {
         url,
         startTime: now,
-        batchNumber: currentPage.current,
+        batchNumber: batchNum || currentPage.current,
         requestStartTime: batchStartTimeRef.current,
         loadStartTime: now,
         loadTime: undefined,
@@ -136,6 +187,24 @@ URL: ${url.split('?')[0]}
     if (initialImages[0]?.url) {
       preloadFullSizeImage(initialImages[0].url);
     }
+  }, [initialImages]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      const first = entries[0];
+      if (first.isIntersecting) {
+        loadNextBatch();
+      }
+    }, { 
+      threshold: 0.1,
+      rootMargin: '100px' 
+    });
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => observer.disconnect();
   }, [initialImages]);
 
   // Preload on hover with debounce
@@ -179,33 +248,6 @@ URL: ${url.split('?')[0]}
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedImage, selectedImageIndex, visibleImages]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting) {
-          batchStartTimeRef.current = performance.now();
-          console.log(`Batch ${currentPage.current + 1} request started:`, new Date().toISOString());
-          const nextBatch = initialImages.slice(
-            currentPage.current * IMAGES_PER_PAGE,
-            (currentPage.current + 1) * IMAGES_PER_PAGE
-          );
-          if (nextBatch.length > 0) {
-            setVisibleImages(prev => [...prev, ...nextBatch]);
-            currentPage.current += 1;
-          }
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [initialImages]);
 
   return (
     <div>
