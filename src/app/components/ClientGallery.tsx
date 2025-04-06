@@ -133,14 +133,12 @@ ${batchMetrics.map(m => `  - ${m.url.split('/').pop()}:
   return (
     <div>
       {/* Performance Metrics Display */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
-          <h3 className="font-bold mb-2">Loading Metrics:</h3>
-          {metrics.map((metric, i) => (
-            <div key={i} className="text-sm mb-1 whitespace-pre-wrap font-mono">{metric}</div>
-          ))}
-        </div>
-      )}
+      <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
+        <h3 className="font-bold mb-2">Loading Metrics:</h3>
+        {metrics.map((metric, i) => (
+          <div key={i} className="text-sm mb-1 whitespace-pre-wrap font-mono">{metric}</div>
+        ))}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {visibleImages.map((image, index) => (
@@ -158,8 +156,14 @@ ${batchMetrics.map(m => `  - ${m.url.split('/').pop()}:
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 loading={index < 8 ? "eager" : "lazy"}
                 quality={75}
-                onLoadingComplete={() => handleImageLoadComplete(image.thumbnailUrl)}
-                onLoadStart={() => handleImageLoadStart(image.thumbnailUrl)}
+                onLoad={() => {
+                  console.log(`Image load started: ${image.thumbnailUrl}`);
+                  handleImageLoadStart(image.thumbnailUrl);
+                }}
+                onLoadingComplete={(result) => {
+                  console.log(`Image complete: ${image.thumbnailUrl}, naturalWidth: ${result.naturalWidth}`);
+                  handleImageLoadComplete(image.thumbnailUrl);
+                }}
               />
             </div>
           )
