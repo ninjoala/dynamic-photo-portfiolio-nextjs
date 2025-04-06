@@ -19,9 +19,9 @@ ENV UPLOADTHING_TOKEN=${UPLOADTHING_TOKEN}
 
 # Use the regular build command if token is provided, otherwise use production build
 RUN if [ -n "$UPLOADTHING_TOKEN" ]; then \
-      npm run build; \
+      npm run build; echo "UPLOADTHING_TOKEN is set"; \
     else \
-      npm run build:production; \
+      npm run build:production; echo "UPLOADTHING_TOKEN is not set"; \
     fi
 
 # Expose the port that the Next.js app will run on
