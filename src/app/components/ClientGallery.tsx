@@ -27,15 +27,6 @@ interface ImageLoadMetrics {
   reported: boolean;
 }
 
-// Add type for extended Performance interface
-interface ExtendedPerformance extends Performance {
-  memory?: {
-    usedJSHeapSize: number;
-    totalJSHeapSize: number;
-    jsHeapSizeLimit: number;
-  };
-}
-
 export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
@@ -48,75 +39,42 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const metricsRef = useRef<Map<string, ImageLoadMetrics>>(new Map());
   const [metrics, setMetrics] = useState<string[]>([]);
   const batchStartTimeRef = useRef<number>(0);
-  const preloadedImages = useRef<Set<string>>(new Set());
   const isLoadingBatch = useRef(false);
+  // Keep track of already preloaded images - we'll NEVER preload these again
+  const alreadyPreloaded = useRef<Set<string>>(new Set());
   
-  // Preload with performance tracking
+  // Preload with strict tracking - only preload each URL once ever
   const preloadFullSizeImage = (imageUrl: string) => {
     if (!imageUrl) return;
     
     // Only preload if we're actually viewing the modal
     if (!selectedImage) return;
     
-    // Don't preload if already loaded or preloaded
-    if (preloadedImages.current.has(imageUrl)) {
-      console.log(`[PRELOAD] SKIPPED - Already preloaded: ${imageUrl.split('?')[0]}`);
+    // STRICT check - NEVER preload the same URL twice
+    if (alreadyPreloaded.current.has(imageUrl)) {
       return;
     }
     
-    // Safe memory access
-    const performanceWithMemory = performance as ExtendedPerformance;
-    const memoryUsed = performanceWithMemory.memory?.usedJSHeapSize;
-    
-    console.log(`[PRELOAD] START - ${imageUrl.split('?')[0]}`);
-    if (memoryUsed) {
-      console.log(`[PRELOAD] Memory before: RSS=${Math.round(memoryUsed / 1048576)}MB`);
-    }
-    
-    // Track performance before operation
-    const preloadStartTime = performance.now();
-    const memoryBefore = performanceWithMemory.memory?.usedJSHeapSize;
+    // Mark as preloaded immediately to prevent any duplicate attempts
+    alreadyPreloaded.current.add(imageUrl);
     
     // Clean up ALL previous preload links to prevent memory leaks and warnings
     const existingLinks = document.head.querySelectorAll('link[rel="preload"][as="image"]');
-    console.log(`[PRELOAD] Removing ${existingLinks.length} existing preload links`);
     existingLinks.forEach(link => {
       link.remove();
     });
 
-    preloadedImages.current.add(imageUrl);
+    // Create new preload link
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
     link.href = imageUrl;
     document.head.appendChild(link);
     
-    // Track link for debugging
-    link.setAttribute('data-debug-info', `preloaded-at-${Date.now()}`);
-    
-    // Performance metrics after operation
-    const preloadTime = performance.now() - preloadStartTime;
-    const memoryAfter = performanceWithMemory.memory?.usedJSHeapSize;
-    const memoryDelta = memoryAfter && memoryBefore 
-      ? ((memoryAfter - memoryBefore) / 1048576).toFixed(2) 
-      : 'unknown';
-    
-    console.log(`[PRELOAD] COMPLETE - ${imageUrl.split('?')[0]} in ${preloadTime.toFixed(2)}ms`);
-    console.log(`[PRELOAD] Memory delta: ${memoryDelta}MB`);
-    console.log(`[PRELOAD] Current Set size: ${preloadedImages.current.size}`);
-    
-    // Set a timeout to remove the preload link if it's not used
+    // Always clean up after 5 seconds - we don't need it lingering
     setTimeout(() => {
-      console.log(`[PRELOAD] CLEANUP - Removing ${imageUrl.split('?')[0]}`);
       link.remove();
-      
-      // Also remove from our tracking set after a while
-      setTimeout(() => {
-        preloadedImages.current.delete(imageUrl);
-        console.log(`[PRELOAD] SET CLEANUP - Removed ${imageUrl.split('?')[0]} from tracking set`);
-        console.log(`[PRELOAD] Current Set size: ${preloadedImages.current.size}`);
-      }, 5000);
-    }, 10000); // Remove after 10 seconds if not used
+    }, 5000);
   };
 
   // Load next batch of images
