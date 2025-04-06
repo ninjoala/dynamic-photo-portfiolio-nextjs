@@ -30,15 +30,20 @@ interface ImageLoadMetrics {
 export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [visibleImages, setVisibleImages] = useState<GalleryImage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const currentPage = useRef(1);
   const loaderRef = useRef(null);
   const IMAGES_PER_PAGE = 12;
   const metricsRef = useRef<Map<string, ImageLoadMetrics>>(new Map());
   const [metrics, setMetrics] = useState<string[]>([]);
   const batchStartTimeRef = useRef<number>(0);
+  const preloadedImages = useRef<Set<string>>(new Set());
   
   // Preload the full-size version of recently viewed thumbnails
   const preloadFullSizeImage = (imageUrl: string) => {
+    if (preloadedImages.current.has(imageUrl)) return;
+    
+    preloadedImages.current.add(imageUrl);
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
@@ -50,7 +55,13 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const handleThumbnailClick = (image: GalleryImage) => {
     if (!image.url) return;
     
+    setIsLoading(true);
     setSelectedImage(image.url);
+    
+    // Fallback to hide loading spinner after a timeout
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
     
     // Preload next few images in the batch
     const currentIndex = visibleImages.findIndex(img => img.key === image.key);
@@ -59,7 +70,11 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   };
 
   // Track image load complete
-  const handleImageLoadComplete = (url: string) => {
+  const handleImageLoad = (url: string) => {
+    if (url === selectedImage) {
+      setIsLoading(false);
+    }
+    
     const metric = metricsRef.current.get(url);
     if (metric && !metric.reported) {  // Only report each image once
       metric.loadTime = performance.now() - metric.loadStartTime;
@@ -105,6 +120,11 @@ URL: ${url.split('?')[0]}
     batchStartTimeRef.current = performance.now();
     setVisibleImages(initialImages.slice(0, IMAGES_PER_PAGE));
     console.log('Initial batch request started:', new Date().toISOString());
+    
+    // Preload first few full-size images
+    initialImages.slice(0, 4).forEach(img => {
+      if (img.url) preloadFullSizeImage(img.url);
+    });
   }, [initialImages]);
 
   useEffect(() => {
@@ -166,10 +186,7 @@ URL: ${url.split('?')[0]}
                 onLoad={() => {
                   console.log(`Image load started: ${image.thumbnailUrl}`);
                   handleImageLoadStart(image.thumbnailUrl);
-                }}
-                onLoadingComplete={(result) => {
-                  console.log(`Image complete: ${image.thumbnailUrl}, naturalWidth: ${result.naturalWidth}`);
-                  handleImageLoadComplete(image.thumbnailUrl);
+                  handleImageLoad(image.thumbnailUrl);
                 }}
               />
             </div>
@@ -190,20 +207,33 @@ URL: ${url.split('?')[0]}
         <div className="fixed inset-0 bg-black/70" aria-hidden="true" />
         
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="relative max-h-[90vh] max-w-[90vw]">
+          <Dialog.Panel className="relative w-full h-full max-w-[90vw] max-h-[90vh]">
             {selectedImage && (
-              <Image
-                src={selectedImage}
-                alt="Full size image"
-                fill
-                sizes="90vw"
-                className="rounded-lg object-contain"
-                onClick={() => setSelectedImage(null)}
-                priority
-                quality={90}
-                onLoadingComplete={() => handleImageLoadComplete(selectedImage)}
-                onLoad={() => handleImageLoadStart(selectedImage)}
-              />
+              <div className="relative w-full h-full min-h-[50vh]">
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="h-16 w-16 rounded-full border-4 border-t-transparent border-white animate-spin"></div>
+                  </div>
+                )}
+                <div className="relative w-full h-full">
+                  <Image
+                    src={selectedImage}
+                    alt="Full size image"
+                    fill
+                    style={{ objectFit: 'contain' }}
+                    sizes="90vw"
+                    className="rounded-lg"
+                    onClick={() => setSelectedImage(null)}
+                    priority
+                    quality={90}
+                    onLoad={() => {
+                      handleImageLoadStart(selectedImage);
+                      handleImageLoad(selectedImage);
+                    }}
+                    onError={() => setIsLoading(false)}
+                  />
+                </div>
+              </div>
             )}
             <button
               onClick={() => setSelectedImage(null)}
