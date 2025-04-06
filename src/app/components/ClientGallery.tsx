@@ -27,6 +27,15 @@ interface ImageLoadMetrics {
   reported: boolean;
 }
 
+// Add type for extended Performance interface
+interface ExtendedPerformance extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
@@ -42,7 +51,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const preloadedImages = useRef<Set<string>>(new Set());
   const isLoadingBatch = useRef(false);
   
-  // Preload the full-size version of recently viewed thumbnails
+  // Preload with performance tracking
   const preloadFullSizeImage = (imageUrl: string) => {
     if (!imageUrl) return;
     
@@ -50,10 +59,27 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     if (!selectedImage) return;
     
     // Don't preload if already loaded or preloaded
-    if (preloadedImages.current.has(imageUrl)) return;
+    if (preloadedImages.current.has(imageUrl)) {
+      console.log(`[PRELOAD] SKIPPED - Already preloaded: ${imageUrl.split('?')[0]}`);
+      return;
+    }
+    
+    // Safe memory access
+    const performanceWithMemory = performance as ExtendedPerformance;
+    const memoryUsed = performanceWithMemory.memory?.usedJSHeapSize;
+    
+    console.log(`[PRELOAD] START - ${imageUrl.split('?')[0]}`);
+    if (memoryUsed) {
+      console.log(`[PRELOAD] Memory before: RSS=${Math.round(memoryUsed / 1048576)}MB`);
+    }
+    
+    // Track performance before operation
+    const preloadStartTime = performance.now();
+    const memoryBefore = performanceWithMemory.memory?.usedJSHeapSize;
     
     // Clean up ALL previous preload links to prevent memory leaks and warnings
     const existingLinks = document.head.querySelectorAll('link[rel="preload"][as="image"]');
+    console.log(`[PRELOAD] Removing ${existingLinks.length} existing preload links`);
     existingLinks.forEach(link => {
       link.remove();
     });
@@ -65,9 +91,31 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     link.href = imageUrl;
     document.head.appendChild(link);
     
+    // Track link for debugging
+    link.setAttribute('data-debug-info', `preloaded-at-${Date.now()}`);
+    
+    // Performance metrics after operation
+    const preloadTime = performance.now() - preloadStartTime;
+    const memoryAfter = performanceWithMemory.memory?.usedJSHeapSize;
+    const memoryDelta = memoryAfter && memoryBefore 
+      ? ((memoryAfter - memoryBefore) / 1048576).toFixed(2) 
+      : 'unknown';
+    
+    console.log(`[PRELOAD] COMPLETE - ${imageUrl.split('?')[0]} in ${preloadTime.toFixed(2)}ms`);
+    console.log(`[PRELOAD] Memory delta: ${memoryDelta}MB`);
+    console.log(`[PRELOAD] Current Set size: ${preloadedImages.current.size}`);
+    
     // Set a timeout to remove the preload link if it's not used
     setTimeout(() => {
+      console.log(`[PRELOAD] CLEANUP - Removing ${imageUrl.split('?')[0]}`);
       link.remove();
+      
+      // Also remove from our tracking set after a while
+      setTimeout(() => {
+        preloadedImages.current.delete(imageUrl);
+        console.log(`[PRELOAD] SET CLEANUP - Removed ${imageUrl.split('?')[0]} from tracking set`);
+        console.log(`[PRELOAD] Current Set size: ${preloadedImages.current.size}`);
+      }, 5000);
     }, 10000); // Remove after 10 seconds if not used
   };
 
@@ -118,9 +166,12 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     }
   };
 
-  // Handle thumbnail click with preloading
+  // Handle thumbnail click with performance tracking
   const handleThumbnailClick = (image: GalleryImage) => {
     if (!image.url) return;
+    
+    const clickTime = performance.now();
+    console.log(`[NAV] Click on image ${image.key} at ${new Date().toISOString()}`);
     
     const index = visibleImages.findIndex(img => img.key === image.key);
     setSelectedImageIndex(index);
@@ -128,29 +179,48 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     setImageError(false);
     setSelectedImage(image.url);
     
+    // Log navigation details
+    console.log(`[NAV] Image index: ${index}, Total images: ${visibleImages.length}`);
+    console.log(`[NAV] State update took: ${(performance.now() - clickTime).toFixed(2)}ms`);
+    
     // Only preload the next image when actually opening the modal
     const nextImage = visibleImages[index + 1];
     if (nextImage?.url) {
+      console.log(`[NAV] Preloading next image: ${nextImage.key}`);
       preloadFullSizeImage(nextImage.url);
+    } else {
+      console.log(`[NAV] No next image to preload`);
     }
 
     // Check if we need to load more images
+    const batchCheckStart = performance.now();
     checkAndLoadMoreImages();
+    console.log(`[NAV] Batch check took: ${(performance.now() - batchCheckStart).toFixed(2)}ms`);
+    
+    // Log overall performance
+    console.log(`[NAV] Total click handling took: ${(performance.now() - clickTime).toFixed(2)}ms`);
   };
 
-  // Track image load complete
+  // Track image load complete with performance
   const handleImageLoad = (url: string) => {
+    const now = performance.now();
+    console.log(`[LOAD] Image loaded: ${url.split('?')[0]}`);
+    
     if (url === selectedImage) {
       setIsLoading(false);
+      console.log(`[LOAD] Modal image load complete`);
     }
     
     const metric = metricsRef.current.get(url);
     if (metric && !metric.reported) {  // Only report each image once
-      metric.loadTime = performance.now() - metric.loadStartTime;
+      metric.loadTime = now - metric.loadStartTime;
       metric.reported = true;
       
       // Get cache status from performance entry
-      const entry = performance.getEntriesByName(url, 'resource')[0] as PerformanceResourceTiming;
+      const entries = performance.getEntriesByName(url, 'resource');
+      console.log(`[PERF] Found ${entries.length} performance entries for ${url.split('?')[0]}`);
+      
+      const entry = entries[0] as PerformanceResourceTiming;
       const cacheStatus = entry?.transferSize === 0 ? 'CACHED' : 'NETWORK';
       
       metricsRef.current.set(url, metric);
@@ -164,7 +234,7 @@ URL: ${url.split('?')[0]}
 ----------------------------------------`;
 
       setMetrics(prev => [...prev, newMetric]);
-      console.log(newMetric);
+      console.log(`[PERF] ${newMetric}`);
     }
   };
 
