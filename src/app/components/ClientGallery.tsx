@@ -59,6 +59,50 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
       ...prev.slice(0, 19) // Keep only 20 most recent entries
     ]);
   };
+  
+  // Connection manager to prevent hitting browser connection limits
+  // Most browsers limit to 6-8 concurrent connections per domain
+  const activeConnections = useRef<Set<string>>(new Set());
+  const connectionQueue = useRef<Array<() => void>>([]);
+  const MAX_CONNECTIONS = 4; // Conservative limit to avoid browser connection limits
+  
+  // Check if we can start a new connection
+  const canStartNewConnection = () => {
+    return activeConnections.current.size < MAX_CONNECTIONS;
+  };
+  
+  // Add a connection to the manager
+  const addConnection = (url: string, onComplete: () => void) => {
+    if (canStartNewConnection()) {
+      // Start immediately if we have connection slots available
+      activeConnections.current.add(url);
+      logPerf('CONNECTION', `Started new connection (${activeConnections.current.size}/${MAX_CONNECTIONS})`);
+      return true;
+    } else {
+      // Queue the connection if we're at the limit
+      connectionQueue.current.push(() => {
+        activeConnections.current.add(url);
+        onComplete();
+      });
+      logPerf('QUEUE', `Connection queued (${connectionQueue.current.length} waiting)`);
+      return false;
+    }
+  };
+  
+  // Release a connection and process the queue
+  const releaseConnection = (url: string) => {
+    activeConnections.current.delete(url);
+    logPerf('RELEASE', `Released connection (${activeConnections.current.size}/${MAX_CONNECTIONS})`);
+    
+    // Process next queued connection if any
+    if (connectionQueue.current.length > 0 && canStartNewConnection()) {
+      const nextConnection = connectionQueue.current.shift();
+      if (nextConnection) {
+        logPerf('DEQUEUE', `Starting queued connection`);
+        nextConnection();
+      }
+    }
+  };
 
   // Preload with strict tracking - only preload each URL once ever
   const preloadFullSizeImage = (imageUrl: string) => {
@@ -101,7 +145,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     }, 5000);
   };
 
-  // Load next batch of images
+  // Load next batch of images with connection management
   const loadNextBatch = async () => {
     if (!isLoadingBatch.current) {
       isLoadingBatch.current = true;
@@ -116,11 +160,11 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
         }
         
         batchStartTimeRef.current = performance.now();
-        console.log(`Batch ${nextBatchNum} request started:`, new Date().toISOString());
+        logPerf('BATCH_START', `Loading batch ${nextBatchNum}`);
         
         const nextBatch = initialImages.slice(startIdx, endIdx);
         if (nextBatch.length > 0) {
-          // Pre-initialize metrics for the batch
+          // Pre-initialize metrics for the batch but limit concurrent loading
           nextBatch.forEach(img => {
             if (img.thumbnailUrl) {
               handleImageLoadStart(img.thumbnailUrl, nextBatchNum);
@@ -148,7 +192,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     }
   };
 
-  // Handle thumbnail click with optimized loading and detailed timing
+  // Handle thumbnail click with optimized loading and connection management
   const handleThumbnailClick = (image: GalleryImage) => {
     if (!image.url) return;
     
@@ -160,53 +204,71 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     setIsLoading(true);
     setImageError(false);
     
-    // Performance optimization: Start loading image before updating state
-    const img = new window.Image();
-    const loadStartTime = performance.now();
-    logPerf('LOAD_START', `Native image load start`, image.key, performance.now() - clickTime);
-    
-    img.onload = () => {
-      // Image has loaded - now we can update the state
-      const loadTime = performance.now() - loadStartTime;
-      logPerf('LOAD_COMPLETE', `Native image loaded in ${loadTime.toFixed(0)}ms`, image.key, loadTime);
+    // Check if we need to manage this connection
+    const startLoading = () => {
+      // Performance optimization: Start loading image before updating state
+      const img = new window.Image();
+      const loadStartTime = performance.now();
+      logPerf('LOAD_START', `Native image load start`, image.key, performance.now() - clickTime);
       
-      // Check if there was a noticeable delay
-      if (loadTime > 100) {
-        logPerf('DELAY', `Slow load detected: ${loadTime.toFixed(0)}ms`, image.key, loadTime);
-      }
+      img.onload = () => {
+        // Image has loaded - now we can update the state
+        const loadTime = performance.now() - loadStartTime;
+        logPerf('LOAD_COMPLETE', `Native image loaded in ${loadTime.toFixed(0)}ms`, image.key, loadTime);
+        
+        // Check if there was a noticeable delay
+        if (loadTime > 100) {
+          logPerf('DELAY', `Slow load detected: ${loadTime.toFixed(0)}ms`, image.key, loadTime);
+        }
+        
+        setSelectedImage(image.url);
+        setIsLoading(false);
+        
+        // Track metrics
+        handleImageLoadStart(image.url);
+        handleImageLoad(image.url);
+        
+        const totalTime = performance.now() - clickTime;
+        logPerf('RENDER_COMPLETE', `Total time: ${totalTime.toFixed(0)}ms`, image.key, totalTime);
+        
+        // Release connection
+        releaseConnection(image.url);
+      };
       
-      setSelectedImage(image.url);
-      setIsLoading(false);
+      img.onerror = () => {
+        logPerf('ERROR', `Failed to load image`, image.key);
+        setSelectedImage(image.url); // Still set the URL so we can show error state
+        setImageError(true);
+        setIsLoading(false);
+        
+        // Release connection even on error
+        releaseConnection(image.url);
+      };
       
-      // Track metrics
-      handleImageLoadStart(image.url);
-      handleImageLoad(image.url);
+      // Set a timeout for slow loads
+      const timeoutId = setTimeout(() => {
+        if (img.complete) return; // Already loaded
+        
+        logPerf('SLOW', `Image load taking > 3 seconds`, image.key, 3000);
+        // We'll still continue loading but warn user
+      }, 3000);
       
-      const totalTime = performance.now() - clickTime;
-      logPerf('RENDER_COMPLETE', `Total time: ${totalTime.toFixed(0)}ms`, image.key, totalTime);
+      // Start loading
+      img.src = image.url;
+      logPerf('IMG_SRC_SET', `Set img.src`, image.key, performance.now() - clickTime);
+      
+      const stateUpdateTime = performance.now() - clickTime;
+      logPerf('STATE_UPDATE', `State updated in ${stateUpdateTime.toFixed(0)}ms`, image.key, stateUpdateTime);
+      
+      return () => clearTimeout(timeoutId);
     };
     
-    img.onerror = () => {
-      logPerf('ERROR', `Failed to load image`, image.key);
-      setSelectedImage(image.url); // Still set the URL so we can show error state
-      setImageError(true);
-      setIsLoading(false);
-    };
-    
-    // Set a timeout for slow loads
-    const timeoutId = setTimeout(() => {
-      if (img.complete) return; // Already loaded
-      
-      logPerf('SLOW', `Image load taking > 3 seconds`, image.key, 3000);
-      // We'll still continue loading but warn user
-    }, 3000);
-    
-    // Start loading
-    img.src = image.url;
-    logPerf('IMG_SRC_SET', `Set img.src`, image.key, performance.now() - clickTime);
-    
-    const stateUpdateTime = performance.now() - clickTime;
-    logPerf('STATE_UPDATE', `State updated in ${stateUpdateTime.toFixed(0)}ms`, image.key, stateUpdateTime);
+    // Add this connection to our manager
+    if (!addConnection(image.url, startLoading)) {
+      logPerf('QUEUE_WAIT', `Waiting for connection slot`, image.key);
+    } else {
+      startLoading();
+    }
     
     // Only preload the next image when actually opening the modal
     const nextImage = visibleImages[index + 1];
@@ -217,9 +279,6 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
 
     // Check if we need to load more images
     checkAndLoadMoreImages();
-    
-    // Cleanup timeout
-    return () => clearTimeout(timeoutId);
   };
 
   // Track image load complete with performance
