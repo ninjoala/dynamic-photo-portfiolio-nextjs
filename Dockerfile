@@ -13,8 +13,16 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Build the application for production (skip generate-image-data)
-RUN npm run build:production
+# If UPLOADTHING_TOKEN exists as an environment variable
+ARG UPLOADTHING_TOKEN
+ENV UPLOADTHING_TOKEN=${UPLOADTHING_TOKEN}
+
+# Use the regular build command if token is provided, otherwise use production build
+RUN if [ -n "$UPLOADTHING_TOKEN" ]; then \
+      npm run build; \
+    else \
+      npm run build:production; \
+    fi
 
 # Expose the port that the Next.js app will run on
 EXPOSE 3000
