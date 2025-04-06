@@ -114,12 +114,14 @@ URL: ${url.split('?')[0]}
   return (
     <div>
       {/* Performance Metrics Display */}
-      <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
-        <h3 className="font-bold mb-2">Loading Metrics:</h3>
-        {metrics.map((metric, i) => (
-          <div key={i} className="text-sm mb-1 whitespace-pre-wrap font-mono">{metric}</div>
-        ))}
-      </div>
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
+          <h3 className="font-bold mb-2">Loading Metrics:</h3>
+          {metrics.map((metric, i) => (
+            <div key={i} className="text-sm mb-1 whitespace-pre-wrap font-mono">{metric}</div>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {visibleImages.map((image, index) => (
