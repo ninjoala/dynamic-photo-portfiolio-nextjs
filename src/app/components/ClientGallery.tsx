@@ -15,16 +15,61 @@ interface ClientGalleryProps {
   initialImages: GalleryImage[];
 }
 
+interface ImageLoadMetrics {
+  url: string;
+  startTime: number;
+  loadTime?: number;
+}
+
 export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [visibleImages, setVisibleImages] = useState<GalleryImage[]>([]);
   const currentPage = useRef(1);
   const loaderRef = useRef(null);
   const IMAGES_PER_PAGE = 12;
+  const metricsRef = useRef<Map<string, ImageLoadMetrics>>(new Map());
+  const [metrics, setMetrics] = useState<string[]>([]);
+
+  // Log performance metrics
+  const logMetrics = () => {
+    const allMetrics = Array.from(metricsRef.current.values());
+    const completedLoads = allMetrics.filter(m => m.loadTime);
+    if (completedLoads.length > 0) {
+      const avgLoadTime = completedLoads.reduce((acc, curr) => acc + (curr.loadTime || 0), 0) / completedLoads.length;
+      const maxLoadTime = Math.max(...completedLoads.map(m => m.loadTime || 0));
+      const newMetric = `Batch ${currentPage.current}: Loaded ${completedLoads.length} images. Avg: ${avgLoadTime.toFixed(2)}ms, Max: ${maxLoadTime.toFixed(2)}ms`;
+      setMetrics(prev => [...prev, newMetric]);
+      console.log(newMetric);
+      
+      // Log individual image times
+      completedLoads.forEach(metric => {
+        console.log(`Image ${metric.url.split('/').pop()}: ${metric.loadTime}ms`);
+      });
+    }
+  };
+
+  // Track image load start
+  const handleImageLoadStart = (url: string) => {
+    metricsRef.current.set(url, {
+      url,
+      startTime: performance.now()
+    });
+  };
+
+  // Track image load complete
+  const handleImageLoadComplete = (url: string) => {
+    const metric = metricsRef.current.get(url);
+    if (metric) {
+      metric.loadTime = performance.now() - metric.startTime;
+      metricsRef.current.set(url, metric);
+      logMetrics();
+    }
+  };
 
   useEffect(() => {
     // Load initial batch
     setVisibleImages(initialImages.slice(0, IMAGES_PER_PAGE));
+    console.log('Initial load started:', new Date().toISOString());
   }, [initialImages]);
 
   useEffect(() => {
@@ -32,6 +77,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
       (entries) => {
         const first = entries[0];
         if (first.isIntersecting) {
+          console.log('Loading next batch:', new Date().toISOString());
           const nextBatch = initialImages.slice(
             currentPage.current * IMAGES_PER_PAGE,
             (currentPage.current + 1) * IMAGES_PER_PAGE
@@ -54,6 +100,16 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
 
   return (
     <div>
+      {/* Performance Metrics Display */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
+          <h3 className="font-bold mb-2">Loading Metrics:</h3>
+          {metrics.map((metric, i) => (
+            <div key={i} className="text-sm mb-1">{metric}</div>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {visibleImages.map((image, index) => (
           image.thumbnailUrl && (
@@ -70,6 +126,8 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 loading={index < 8 ? "eager" : "lazy"}
                 quality={75}
+                onLoadingComplete={() => handleImageLoadComplete(image.thumbnailUrl)}
+                onLoadStart={() => handleImageLoadStart(image.thumbnailUrl)}
               />
             </div>
           )
@@ -100,6 +158,8 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
                 onClick={() => setSelectedImage(null)}
                 priority
                 quality={85}
+                onLoadingComplete={() => handleImageLoadComplete(selectedImage)}
+                onLoadStart={() => handleImageLoadStart(selectedImage)}
               />
             )}
             <button
