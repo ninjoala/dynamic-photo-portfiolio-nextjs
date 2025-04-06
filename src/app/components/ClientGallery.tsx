@@ -56,16 +56,19 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
         const avgLoadTime = batchMetrics.reduce((acc, curr) => acc + (curr.loadTime || 0), 0) / batchMetrics.length;
         const maxLoadTime = Math.max(...batchMetrics.map(m => m.loadTime || 0));
         
-        const newMetric = `Batch ${batchNum}:
-• Total batch time: ${totalBatchTime.toFixed(2)}ms
-• Images loaded: ${batchMetrics.length}
-• Avg load time: ${avgLoadTime.toFixed(2)}ms
-• Max load time: ${maxLoadTime.toFixed(2)}ms
-• Individual times:
-${batchMetrics.map(m => `  - ${m.url.split('/').pop()}: 
-    Request start: ${(m.requestStartTime - batchStartTime).toFixed(2)}ms
-    Load start: ${(m.loadStartTime - m.requestStartTime).toFixed(2)}ms
-    Load complete: ${m.loadTime?.toFixed(2)}ms`).join('\n')}`;
+        const newMetric = `BATCH ${batchNum}
+Total time: ${totalBatchTime.toFixed(2)}ms
+Images: ${batchMetrics.length}
+Avg load: ${avgLoadTime.toFixed(2)}ms
+Max load: ${maxLoadTime.toFixed(2)}ms
+
+IMAGES:
+${batchMetrics.map(m => `${m.url.split('/').pop()}
+Request: ${(m.requestStartTime - batchStartTime).toFixed(2)}ms
+Load start: ${(m.loadStartTime - m.requestStartTime).toFixed(2)}ms
+Complete: ${m.loadTime?.toFixed(2)}ms
+`).join('\n')}
+----------------------------------------`;
 
         setMetrics(prev => [...prev, newMetric]);
         console.log(newMetric);
@@ -73,27 +76,46 @@ ${batchMetrics.map(m => `  - ${m.url.split('/').pop()}:
     }
   };
 
-  // Track image load start
-  const handleImageLoadStart = (url: string) => {
-    const existingMetric = metricsRef.current.get(url);
-    metricsRef.current.set(url, {
-      url,
-      startTime: performance.now(),
-      batchNumber: currentPage.current,
-      requestStartTime: batchStartTimeRef.current,
-      loadStartTime: performance.now(),
-      loadTime: existingMetric?.loadTime
-    });
-  };
-
   // Track image load complete
   const handleImageLoadComplete = (url: string) => {
     const metric = metricsRef.current.get(url);
     if (metric) {
       metric.loadTime = performance.now() - metric.loadStartTime;
+      
+      // Get detailed timing data
+      const entry = performance.getEntriesByName(url, 'resource')[0] as PerformanceResourceTiming;
+      if (entry) {
+        const timingDetails = {
+          dns: entry.domainLookupEnd - entry.domainLookupStart,
+          connect: entry.connectEnd - entry.connectStart,
+          ttfb: entry.responseStart - entry.requestStart,
+          download: entry.responseEnd - entry.responseStart,
+          total: entry.duration
+        };
+        console.log(`Detailed timing for ${url.split('/').pop()}:`, timingDetails);
+      }
+      
       metricsRef.current.set(url, metric);
       logMetrics();
     }
+  };
+
+  // Track image load start
+  const handleImageLoadStart = (url: string) => {
+    const existingMetric = metricsRef.current.get(url);
+    const now = performance.now();
+    
+    // Clear previous timing data for this URL
+    performance.clearResourceTimings();
+    
+    metricsRef.current.set(url, {
+      url,
+      startTime: now,
+      batchNumber: currentPage.current,
+      requestStartTime: batchStartTimeRef.current,
+      loadStartTime: now,
+      loadTime: existingMetric?.loadTime
+    });
   };
 
   useEffect(() => {
