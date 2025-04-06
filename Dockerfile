@@ -13,11 +13,11 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the application for production (skip generate-image-data)
+RUN npm run build:production
 
 # Expose the port that the Next.js app will run on
 EXPOSE 3000
 
-# Start the Next.js development server
-CMD ["npm", "run", "dev"]
+# Start the Next.js production server
+CMD ["npm", "start"]
