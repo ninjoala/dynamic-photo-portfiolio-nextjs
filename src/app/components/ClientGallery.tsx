@@ -19,6 +19,9 @@ interface ImageLoadMetrics {
   url: string;
   startTime: number;
   loadTime?: number;
+  batchNumber: number;
+  requestStartTime: number;
+  loadStartTime: number;
 }
 
 export function ClientGallery({ initialImages }: ClientGalleryProps) {
@@ -29,30 +32,57 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const IMAGES_PER_PAGE = 12;
   const metricsRef = useRef<Map<string, ImageLoadMetrics>>(new Map());
   const [metrics, setMetrics] = useState<string[]>([]);
+  const batchStartTimeRef = useRef<number>(0);
 
   // Log performance metrics
   const logMetrics = () => {
     const allMetrics = Array.from(metricsRef.current.values());
     const completedLoads = allMetrics.filter(m => m.loadTime);
+    
     if (completedLoads.length > 0) {
-      const avgLoadTime = completedLoads.reduce((acc, curr) => acc + (curr.loadTime || 0), 0) / completedLoads.length;
-      const maxLoadTime = Math.max(...completedLoads.map(m => m.loadTime || 0));
-      const newMetric = `Batch ${currentPage.current}: Loaded ${completedLoads.length} images. Avg: ${avgLoadTime.toFixed(2)}ms, Max: ${maxLoadTime.toFixed(2)}ms`;
-      setMetrics(prev => [...prev, newMetric]);
-      console.log(newMetric);
-      
-      // Log individual image times
-      completedLoads.forEach(metric => {
-        console.log(`Image ${metric.url.split('/').pop()}: ${metric.loadTime}ms`);
+      // Group by batch number
+      const batchGroups = completedLoads.reduce((acc, curr) => {
+        if (!acc[curr.batchNumber]) acc[curr.batchNumber] = [];
+        acc[curr.batchNumber].push(curr);
+        return acc;
+      }, {} as Record<number, ImageLoadMetrics[]>);
+
+      // Log metrics for each batch
+      Object.entries(batchGroups).forEach(([batchNum, batchMetrics]) => {
+        const batchStartTime = Math.min(...batchMetrics.map(m => m.requestStartTime));
+        const batchEndTime = Math.max(...batchMetrics.map(m => (m.loadTime || 0) + m.loadStartTime));
+        const totalBatchTime = batchEndTime - batchStartTime;
+
+        const avgLoadTime = batchMetrics.reduce((acc, curr) => acc + (curr.loadTime || 0), 0) / batchMetrics.length;
+        const maxLoadTime = Math.max(...batchMetrics.map(m => m.loadTime || 0));
+        
+        const newMetric = `Batch ${batchNum}:
+• Total batch time: ${totalBatchTime.toFixed(2)}ms
+• Images loaded: ${batchMetrics.length}
+• Avg load time: ${avgLoadTime.toFixed(2)}ms
+• Max load time: ${maxLoadTime.toFixed(2)}ms
+• Individual times:
+${batchMetrics.map(m => `  - ${m.url.split('/').pop()}: 
+    Request start: ${(m.requestStartTime - batchStartTime).toFixed(2)}ms
+    Load start: ${(m.loadStartTime - m.requestStartTime).toFixed(2)}ms
+    Load complete: ${m.loadTime?.toFixed(2)}ms`).join('\n')}`;
+
+        setMetrics(prev => [...prev, newMetric]);
+        console.log(newMetric);
       });
     }
   };
 
   // Track image load start
   const handleImageLoadStart = (url: string) => {
+    const existingMetric = metricsRef.current.get(url);
     metricsRef.current.set(url, {
       url,
-      startTime: performance.now()
+      startTime: performance.now(),
+      batchNumber: currentPage.current,
+      requestStartTime: batchStartTimeRef.current,
+      loadStartTime: performance.now(),
+      loadTime: existingMetric?.loadTime
     });
   };
 
@@ -60,7 +90,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const handleImageLoadComplete = (url: string) => {
     const metric = metricsRef.current.get(url);
     if (metric) {
-      metric.loadTime = performance.now() - metric.startTime;
+      metric.loadTime = performance.now() - metric.loadStartTime;
       metricsRef.current.set(url, metric);
       logMetrics();
     }
@@ -68,8 +98,9 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
 
   useEffect(() => {
     // Load initial batch
+    batchStartTimeRef.current = performance.now();
     setVisibleImages(initialImages.slice(0, IMAGES_PER_PAGE));
-    console.log('Initial load started:', new Date().toISOString());
+    console.log('Initial batch request started:', new Date().toISOString());
   }, [initialImages]);
 
   useEffect(() => {
@@ -77,7 +108,8 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
       (entries) => {
         const first = entries[0];
         if (first.isIntersecting) {
-          console.log('Loading next batch:', new Date().toISOString());
+          batchStartTimeRef.current = performance.now();
+          console.log(`Batch ${currentPage.current + 1} request started:`, new Date().toISOString());
           const nextBatch = initialImages.slice(
             currentPage.current * IMAGES_PER_PAGE,
             (currentPage.current + 1) * IMAGES_PER_PAGE
@@ -105,7 +137,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
         <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
           <h3 className="font-bold mb-2">Loading Metrics:</h3>
           {metrics.map((metric, i) => (
-            <div key={i} className="text-sm mb-1">{metric}</div>
+            <div key={i} className="text-sm mb-1 whitespace-pre-wrap font-mono">{metric}</div>
           ))}
         </div>
       )}
