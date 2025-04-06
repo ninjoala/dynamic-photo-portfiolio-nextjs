@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Dialog } from '@headlessui/react';
 
@@ -17,11 +17,45 @@ interface ClientGalleryProps {
 
 export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [visibleImages, setVisibleImages] = useState<GalleryImage[]>([]);
+  const currentPage = useRef(1);
+  const loaderRef = useRef(null);
+  const IMAGES_PER_PAGE = 12;
+
+  useEffect(() => {
+    // Load initial batch
+    setVisibleImages(initialImages.slice(0, IMAGES_PER_PAGE));
+  }, [initialImages]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting) {
+          const nextBatch = initialImages.slice(
+            currentPage.current * IMAGES_PER_PAGE,
+            (currentPage.current + 1) * IMAGES_PER_PAGE
+          );
+          if (nextBatch.length > 0) {
+            setVisibleImages(prev => [...prev, ...nextBatch]);
+            currentPage.current += 1;
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [initialImages]);
 
   return (
     <div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {initialImages.map((image) => (
+        {visibleImages.map((image, index) => (
           image.thumbnailUrl && (
             <div
               key={image.key}
@@ -34,11 +68,18 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
                 fill
                 className="object-cover transition-transform duration-300 hover:scale-110"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                loading={index < 8 ? "eager" : "lazy"}
+                quality={75}
               />
             </div>
           )
         ))}
       </div>
+
+      {/* Loader reference element */}
+      {visibleImages.length < initialImages.length && (
+        <div ref={loaderRef} className="h-10 w-full" />
+      )}
 
       <Dialog
         open={selectedImage !== null}
@@ -57,6 +98,8 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
                 height={800}
                 className="rounded-lg object-contain"
                 onClick={() => setSelectedImage(null)}
+                priority
+                quality={85}
               />
             )}
             <button
