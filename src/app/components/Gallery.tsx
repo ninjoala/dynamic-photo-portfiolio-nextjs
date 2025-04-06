@@ -12,6 +12,7 @@ interface ImageData {
     thumbnailUrl: string;
   }>;
   lastUpdated?: string;
+  error?: string;
 }
 
 // Default empty data
@@ -28,6 +29,11 @@ function getImageData(): ImageData {
     }
   } catch (error) {
     console.warn('Error reading images.json:', error);
+    return {
+      images: [],
+      lastUpdated: new Date().toISOString(),
+      error: 'Error reading images.json' + error
+    };
   }
   
   return emptyData;
@@ -38,7 +44,7 @@ export default function Gallery() {
   const imageData = getImageData();
   
   if (imageData.images.length === 0) {
-    return <div>No images found</div>
+    return <div>No images found {imageData.error}</div>
   }
   return (
     <div className="container mx-auto px-4 py-8">
