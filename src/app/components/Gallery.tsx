@@ -27,6 +27,13 @@ function getImageData(): ImageData {
       const fileContents = fs.readFileSync(filePath, 'utf8');
       return JSON.parse(fileContents) as ImageData;
     }
+    else {
+      return {
+        images: [],
+        lastUpdated: new Date().toISOString(),
+        error: 'images.json does not exist'
+      };
+    }
   } catch (error) {
     console.warn('Error reading images.json:', error);
     return {
