@@ -37,12 +37,29 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const loaderRef = useRef(null);
   const IMAGES_PER_PAGE = 12;
   const metricsRef = useRef<Map<string, ImageLoadMetrics>>(new Map());
-  const [metrics, setMetrics] = useState<string[]>([]);
   const batchStartTimeRef = useRef<number>(0);
   const isLoadingBatch = useRef(false);
   // Keep track of already preloaded images - we'll NEVER preload these again
   const alreadyPreloaded = useRef<Set<string>>(new Set());
   
+  // Debug logs that will show on screen
+  const [perfLogs, setPerfLogs] = useState<Array<{
+    timestamp: number,
+    action: string,
+    message: string,
+    duration?: number,
+    imageKey?: string
+  }>>([]);
+  
+  // Add a performance log entry with timing
+  const logPerf = (action: string, message: string, imageKey?: string, duration?: number) => {
+    const timestamp = Date.now();
+    setPerfLogs(prev => [
+      { timestamp, action, message, imageKey, duration },
+      ...prev.slice(0, 19) // Keep only 20 most recent entries
+    ]);
+  };
+
   // Preload with strict tracking - only preload each URL once ever
   const preloadFullSizeImage = (imageUrl: string) => {
     if (!imageUrl) return;
@@ -52,14 +69,17 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     
     // STRICT check - NEVER preload the same URL twice
     if (alreadyPreloaded.current.has(imageUrl)) {
+      logPerf('PRELOAD_SKIP', `Already preloaded ${imageUrl.slice(-20)}`);
       return;
     }
     
+    const preloadStart = performance.now();
     // Mark as preloaded immediately to prevent any duplicate attempts
     alreadyPreloaded.current.add(imageUrl);
     
     // Clean up ALL previous preload links to prevent memory leaks and warnings
     const existingLinks = document.head.querySelectorAll('link[rel="preload"][as="image"]');
+    logPerf('PRELOAD_CLEAN', `Removing ${existingLinks.length} links`);
     existingLinks.forEach(link => {
       link.remove();
     });
@@ -71,9 +91,13 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     link.href = imageUrl;
     document.head.appendChild(link);
     
+    const preloadTime = performance.now() - preloadStart;
+    logPerf('PRELOAD_COMPLETE', `Preload complete in ${preloadTime.toFixed(0)}ms`, undefined, preloadTime);
+    
     // Always clean up after 5 seconds - we don't need it lingering
     setTimeout(() => {
       link.remove();
+      logPerf('PRELOAD_REMOVED', `Removed preload link`);
     }, 5000);
   };
 
@@ -124,9 +148,12 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     }
   };
 
-  // Handle thumbnail click with optimized loading
+  // Handle thumbnail click with optimized loading and detailed timing
   const handleThumbnailClick = (image: GalleryImage) => {
     if (!image.url) return;
+    
+    const clickTime = performance.now();
+    logPerf('CLICK', `Start loading ${image.key}`, image.key);
     
     const index = visibleImages.findIndex(img => img.key === image.key);
     setSelectedImageIndex(index);
@@ -136,23 +163,31 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     // Performance optimization: Start loading image before updating state
     const img = new window.Image();
     const loadStartTime = performance.now();
+    logPerf('LOAD_START', `Native image load start`, image.key, performance.now() - clickTime);
     
     img.onload = () => {
       // Image has loaded - now we can update the state
+      const loadTime = performance.now() - loadStartTime;
+      logPerf('LOAD_COMPLETE', `Native image loaded in ${loadTime.toFixed(0)}ms`, image.key, loadTime);
+      
+      // Check if there was a noticeable delay
+      if (loadTime > 100) {
+        logPerf('DELAY', `Slow load detected: ${loadTime.toFixed(0)}ms`, image.key, loadTime);
+      }
+      
       setSelectedImage(image.url);
       setIsLoading(false);
-      
-      // Log timing
-      const loadTime = performance.now() - loadStartTime;
-      console.log(`Image loaded in ${loadTime.toFixed(2)}ms: ${image.url}`);
       
       // Track metrics
       handleImageLoadStart(image.url);
       handleImageLoad(image.url);
+      
+      const totalTime = performance.now() - clickTime;
+      logPerf('RENDER_COMPLETE', `Total time: ${totalTime.toFixed(0)}ms`, image.key, totalTime);
     };
     
     img.onerror = () => {
-      console.error(`Failed to load image: ${image.url}`);
+      logPerf('ERROR', `Failed to load image`, image.key);
       setSelectedImage(image.url); // Still set the URL so we can show error state
       setImageError(true);
       setIsLoading(false);
@@ -162,16 +197,21 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     const timeoutId = setTimeout(() => {
       if (img.complete) return; // Already loaded
       
-      console.warn(`Image load taking too long: ${image.url}`);
+      logPerf('SLOW', `Image load taking > 3 seconds`, image.key, 3000);
       // We'll still continue loading but warn user
     }, 3000);
     
     // Start loading
     img.src = image.url;
+    logPerf('IMG_SRC_SET', `Set img.src`, image.key, performance.now() - clickTime);
+    
+    const stateUpdateTime = performance.now() - clickTime;
+    logPerf('STATE_UPDATE', `State updated in ${stateUpdateTime.toFixed(0)}ms`, image.key, stateUpdateTime);
     
     // Only preload the next image when actually opening the modal
     const nextImage = visibleImages[index + 1];
     if (nextImage?.url) {
+      logPerf('PRELOAD', `Preloading next image ${nextImage.key}`, nextImage.key);
       preloadFullSizeImage(nextImage.url);
     }
 
@@ -185,11 +225,9 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   // Track image load complete with performance
   const handleImageLoad = (url: string) => {
     const now = performance.now();
-    console.log(`[LOAD] Image loaded: ${url.split('?')[0]}`);
     
     if (url === selectedImage) {
       setIsLoading(false);
-      console.log(`[LOAD] Modal image load complete`);
     }
     
     const metric = metricsRef.current.get(url);
@@ -199,7 +237,6 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
       
       // Get cache status from performance entry
       const entries = performance.getEntriesByName(url, 'resource');
-      console.log(`[PERF] Found ${entries.length} performance entries for ${url.split('?')[0]}`);
       
       const entry = entries[0] as PerformanceResourceTiming;
       const cacheStatus = entry?.transferSize === 0 ? 'CACHED' : 'NETWORK';
@@ -214,8 +251,8 @@ Cache: ${cacheStatus}
 URL: ${url.split('?')[0]}
 ----------------------------------------`;
 
-      setMetrics(prev => [...prev, newMetric]);
-      console.log(`[PERF] ${newMetric}`);
+      // Add this to our performance logs instead
+      logPerf('METRIC', newMetric, undefined, metric.loadTime);
     }
   };
 
@@ -370,15 +407,26 @@ URL: ${url.split('?')[0]}
 
   return (
     <div>
-      {/* Performance Metrics Display */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
-          <h3 className="font-bold mb-2">Loading Metrics:</h3>
-          {metrics.map((metric, i) => (
-            <div key={i} className="text-sm mb-1 whitespace-pre-wrap font-mono">{metric}</div>
+      {/* Performance Debug Panel */}
+      <div className="fixed bottom-4 left-4 bg-black/80 text-white p-4 rounded-lg z-50 max-w-md overflow-auto max-h-96">
+        <h3 className="font-bold mb-2">Performance Logs:</h3>
+        <div className="space-y-1 text-xs font-mono">
+          {perfLogs.map((log, i) => (
+            <div key={i} className={`p-1 ${
+              log.action.includes('ERROR') || log.action.includes('SLOW') || log.action.includes('DELAY') ? 
+                'bg-red-900/50' : 
+                log.action.includes('COMPLETE') ? 'bg-green-900/50' : ''
+            }`}>
+              <span className="text-gray-400">{new Date(log.timestamp).toISOString().split('T')[1].slice(0, -1)}</span>
+              {' | '}
+              <span className="text-yellow-300 font-bold">{log.action}</span>
+              {' | '}
+              <span>{log.message}</span>
+              {log.duration && <span className="text-cyan-300"> [{log.duration.toFixed(0)}ms]</span>}
+            </div>
           ))}
         </div>
-      )}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {visibleImages.map((image, index) => (
