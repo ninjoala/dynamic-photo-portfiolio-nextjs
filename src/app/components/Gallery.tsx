@@ -37,6 +37,9 @@ export default function Gallery() {
   // Get image data server-side
   const imageData = getImageData();
   
+  if (imageData.images.length === 0) {
+    return <div>No images found</div>
+  }
   return (
     <div className="container mx-auto px-4 py-8">
       <ClientGallery initialImages={imageData.images} />
