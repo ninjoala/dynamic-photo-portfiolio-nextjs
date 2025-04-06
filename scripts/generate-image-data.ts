@@ -28,8 +28,8 @@ if (!process.env.UPLOADTHING_TOKEN) {
     console.log('✅ Empty image data generated for production');
     process.exit(0);
   } else {
-    console.error('❌ UPLOADTHING_TOKEN is not set in .env file');
-    process.exit(1);
+    //console.error('❌ UPLOADTHING_TOKEN is not set in .env file');
+    //process.exit(1);
   }
 }
 
