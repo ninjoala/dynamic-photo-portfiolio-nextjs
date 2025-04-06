@@ -124,39 +124,62 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     }
   };
 
-  // Handle thumbnail click with performance tracking
+  // Handle thumbnail click with optimized loading
   const handleThumbnailClick = (image: GalleryImage) => {
     if (!image.url) return;
-    
-    const clickTime = performance.now();
-    console.log(`[NAV] Click on image ${image.key} at ${new Date().toISOString()}`);
     
     const index = visibleImages.findIndex(img => img.key === image.key);
     setSelectedImageIndex(index);
     setIsLoading(true);
     setImageError(false);
-    setSelectedImage(image.url);
     
-    // Log navigation details
-    console.log(`[NAV] Image index: ${index}, Total images: ${visibleImages.length}`);
-    console.log(`[NAV] State update took: ${(performance.now() - clickTime).toFixed(2)}ms`);
+    // Performance optimization: Start loading image before updating state
+    const img = new window.Image();
+    const loadStartTime = performance.now();
+    
+    img.onload = () => {
+      // Image has loaded - now we can update the state
+      setSelectedImage(image.url);
+      setIsLoading(false);
+      
+      // Log timing
+      const loadTime = performance.now() - loadStartTime;
+      console.log(`Image loaded in ${loadTime.toFixed(2)}ms: ${image.url}`);
+      
+      // Track metrics
+      handleImageLoadStart(image.url);
+      handleImageLoad(image.url);
+    };
+    
+    img.onerror = () => {
+      console.error(`Failed to load image: ${image.url}`);
+      setSelectedImage(image.url); // Still set the URL so we can show error state
+      setImageError(true);
+      setIsLoading(false);
+    };
+    
+    // Set a timeout for slow loads
+    const timeoutId = setTimeout(() => {
+      if (img.complete) return; // Already loaded
+      
+      console.warn(`Image load taking too long: ${image.url}`);
+      // We'll still continue loading but warn user
+    }, 3000);
+    
+    // Start loading
+    img.src = image.url;
     
     // Only preload the next image when actually opening the modal
     const nextImage = visibleImages[index + 1];
     if (nextImage?.url) {
-      console.log(`[NAV] Preloading next image: ${nextImage.key}`);
       preloadFullSizeImage(nextImage.url);
-    } else {
-      console.log(`[NAV] No next image to preload`);
     }
 
     // Check if we need to load more images
-    const batchCheckStart = performance.now();
     checkAndLoadMoreImages();
-    console.log(`[NAV] Batch check took: ${(performance.now() - batchCheckStart).toFixed(2)}ms`);
     
-    // Log overall performance
-    console.log(`[NAV] Total click handling took: ${(performance.now() - clickTime).toFixed(2)}ms`);
+    // Cleanup timeout
+    return () => clearTimeout(timeoutId);
   };
 
   // Track image load complete with performance
@@ -275,6 +298,76 @@ URL: ${url.split('?')[0]}
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedImage, selectedImageIndex, visibleImages]);
 
+  // Render the selected image with optimizations
+  const renderModalImage = () => {
+    if (!selectedImage) return null;
+    
+    return (
+      <div className="relative w-full h-full min-h-[50vh]">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="h-16 w-16 rounded-full border-4 border-t-transparent border-white animate-spin"></div>
+          </div>
+        )}
+        {imageError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 text-white bg-black/50 p-4">
+            <p className="text-xl mb-2">Failed to load image</p>
+            <p className="text-sm mb-4">The image could not be loaded properly.</p>
+            <button 
+              className="px-4 py-2 bg-white text-black rounded-md hover:bg-gray-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Retry loading the current image
+                if (selectedImage) {
+                  setIsLoading(true);
+                  setImageError(false);
+                  const retryImg = new window.Image();
+                  retryImg.onload = () => {
+                    setIsLoading(false);
+                    // Force re-render by temporarily setting to null
+                    setSelectedImage(null);
+                    setTimeout(() => setSelectedImage(selectedImage), 50);
+                  };
+                  retryImg.onerror = () => {
+                    setIsLoading(false);
+                    setImageError(true);
+                  };
+                  retryImg.src = selectedImage;
+                }
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        <div className="relative w-full h-full">
+          {selectedImage && (
+            <Image
+              src={selectedImage}
+              alt="Full size image"
+              fill
+              style={{ objectFit: 'contain' }}
+              sizes="90vw"
+              className="rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+              priority
+              quality={90}
+              onLoad={() => {
+                handleImageLoadStart(selectedImage);
+                handleImageLoad(selectedImage);
+              }}
+              onError={() => {
+                console.error('Image failed to load:', selectedImage);
+                setImageError(true);
+                setIsLoading(false);
+              }}
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       {/* Performance Metrics Display */}
@@ -363,42 +456,7 @@ URL: ${url.split('?')[0]}
               </button>
             )}
 
-            {selectedImage && (
-              <div className="relative w-full h-full min-h-[50vh]">
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="h-16 w-16 rounded-full border-4 border-t-transparent border-white animate-spin"></div>
-                  </div>
-                )}
-                {imageError && (
-                  <div className="absolute inset-0 flex items-center justify-center z-10 text-white bg-black/50">
-                    <p>Failed to load image. Click to try again.</p>
-                  </div>
-                )}
-                <div className="relative w-full h-full">
-                  <Image
-                    src={selectedImage}
-                    alt="Full size image"
-                    fill
-                    style={{ objectFit: 'contain' }}
-                    sizes="90vw"
-                    className="rounded-lg"
-                    onClick={(e) => e.stopPropagation()}
-                    priority
-                    quality={90}
-                    onLoad={() => {
-                      handleImageLoadStart(selectedImage);
-                      handleImageLoad(selectedImage);
-                    }}
-                    onError={() => {
-                      console.error('Image failed to load:', selectedImage);
-                      setImageError(true);
-                      setIsLoading(false);
-                    }}
-                  />
-                </div>
-              </div>
-            )}
+            {renderModalImage()}
             <button
               onClick={() => {
                 setSelectedImage(null);
