@@ -32,6 +32,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   const [visibleImages, setVisibleImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const currentPage = useRef(1);
   const loaderRef = useRef(null);
   const IMAGES_PER_PAGE = 12;
@@ -42,8 +43,18 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   
   // Preload the full-size version of recently viewed thumbnails
   const preloadFullSizeImage = (imageUrl: string) => {
-    if (preloadedImages.current.has(imageUrl)) return;
+    if (!imageUrl || preloadedImages.current.has(imageUrl)) return;
     
+    // Clean up old preload links to prevent memory leaks
+    const existingLinks = document.head.querySelectorAll('link[rel="preload"][as="image"]');
+    if (existingLinks.length > 10) {
+      existingLinks.forEach((link, index) => {
+        if (index < existingLinks.length - 10) {
+          link.remove();
+        }
+      });
+    }
+
     preloadedImages.current.add(imageUrl);
     const link = document.createElement('link');
     link.rel = 'preload';
@@ -52,52 +63,6 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     document.head.appendChild(link);
   };
 
-  // Handle navigation between images
-  const navigateImage = (direction: 'prev' | 'next') => {
-    const currentIndex = selectedImageIndex;
-    let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
-    
-    // Handle wrapping
-    if (newIndex < 0) {
-      newIndex = visibleImages.length - 1;
-    } else if (newIndex >= visibleImages.length) {
-      newIndex = 0;
-    }
-    
-    const newImage = visibleImages[newIndex];
-    if (newImage?.url) {
-      setSelectedImageIndex(newIndex);
-      setIsLoading(true);
-      setSelectedImage(newImage.url);
-      
-      // Preload the next image in the sequence
-      const nextIndex = direction === 'next' ? newIndex + 1 : newIndex - 1;
-      const nextImage = visibleImages[nextIndex];
-      if (nextImage?.url) {
-        preloadFullSizeImage(nextImage.url);
-      }
-    }
-  };
-
-  // Handle keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedImage) {
-        if (e.key === 'ArrowLeft') {
-          navigateImage('prev');
-        } else if (e.key === 'ArrowRight') {
-          navigateImage('next');
-        } else if (e.key === 'Escape') {
-          setSelectedImage(null);
-          setSelectedImageIndex(-1);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedImage, visibleImages]);
-
   // Handle thumbnail click with preloading
   const handleThumbnailClick = (image: GalleryImage) => {
     if (!image.url) return;
@@ -105,16 +70,14 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     const index = visibleImages.findIndex(img => img.key === image.key);
     setSelectedImageIndex(index);
     setIsLoading(true);
+    setImageError(false);
     setSelectedImage(image.url);
     
-    // Fallback to hide loading spinner after a timeout
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-    
-    // Preload next few images in the batch
-    const nextImages = visibleImages.slice(index + 1, index + 4);
-    nextImages.forEach(img => img.url && preloadFullSizeImage(img.url));
+    // Only preload the next image
+    const nextImage = visibleImages[index + 1];
+    if (nextImage?.url) {
+      preloadFullSizeImage(nextImage.url);
+    }
   };
 
   // Track image load complete
@@ -126,7 +89,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     const metric = metricsRef.current.get(url);
     if (metric && !metric.reported) {  // Only report each image once
       metric.loadTime = performance.now() - metric.loadStartTime;
-      metric.reported = true;  // Mark as reported
+      metric.reported = true;
       
       // Get cache status from performance entry
       const entry = performance.getEntriesByName(url, 'resource')[0] as PerformanceResourceTiming;
@@ -169,11 +132,53 @@ URL: ${url.split('?')[0]}
     setVisibleImages(initialImages.slice(0, IMAGES_PER_PAGE));
     console.log('Initial batch request started:', new Date().toISOString());
     
-    // Preload first few full-size images
-    initialImages.slice(0, 4).forEach(img => {
-      if (img.url) preloadFullSizeImage(img.url);
-    });
+    // Only preload the first image initially
+    if (initialImages[0]?.url) {
+      preloadFullSizeImage(initialImages[0].url);
+    }
   }, [initialImages]);
+
+  // Preload on hover with debounce
+  const handleMouseEnter = (image: GalleryImage) => {
+    if (!image.url) return;
+    
+    // Use requestIdleCallback to preload during idle time
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => {
+        preloadFullSizeImage(image.url);
+      }, { timeout: 2000 });
+    } else {
+      // Fallback to setTimeout
+      setTimeout(() => {
+        preloadFullSizeImage(image.url);
+      }, 100);
+    }
+  };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedImage) {
+        if (e.key === 'ArrowLeft' && selectedImageIndex > 0) {
+          const prevImage = visibleImages[selectedImageIndex - 1];
+          if (prevImage?.url) {
+            handleThumbnailClick(prevImage);
+          }
+        } else if (e.key === 'ArrowRight' && selectedImageIndex < visibleImages.length - 1) {
+          const nextImage = visibleImages[selectedImageIndex + 1];
+          if (nextImage?.url) {
+            handleThumbnailClick(nextImage);
+          }
+        } else if (e.key === 'Escape') {
+          setSelectedImage(null);
+          setSelectedImageIndex(-1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImage, selectedImageIndex, visibleImages]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -221,7 +226,7 @@ URL: ${url.split('?')[0]}
               key={image.key}
               className="relative aspect-square cursor-pointer overflow-hidden rounded-lg"
               onClick={() => handleThumbnailClick(image)}
-              onMouseEnter={() => image.url && preloadFullSizeImage(image.url)}
+              onMouseEnter={() => handleMouseEnter(image)}
             >
               <Image
                 src={image.thumbnailUrl}
@@ -232,7 +237,6 @@ URL: ${url.split('?')[0]}
                 loading={index < 8 ? "eager" : "lazy"}
                 quality={75}
                 onLoad={() => {
-                  console.log(`Image load started: ${image.thumbnailUrl}`);
                   handleImageLoadStart(image.thumbnailUrl);
                   handleImageLoad(image.thumbnailUrl);
                 }}
@@ -252,6 +256,7 @@ URL: ${url.split('?')[0]}
         onClose={() => {
           setSelectedImage(null);
           setSelectedImageIndex(-1);
+          setImageError(false);
         }}
         className="relative z-50"
       >
@@ -260,31 +265,46 @@ URL: ${url.split('?')[0]}
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="relative w-full h-full max-w-[90vw] max-h-[90vh]">
             {/* Navigation Arrows */}
-            <button
-              onClick={() => navigateImage('prev')}
-              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-3 text-gray-800 hover:bg-white transition-colors z-20"
-              aria-label="Previous image"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
+            {selectedImageIndex > 0 && (
+              <button
+                onClick={() => {
+                  const prevImage = visibleImages[selectedImageIndex - 1];
+                  if (prevImage?.url) handleThumbnailClick(prevImage);
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-3 text-gray-800 hover:bg-white transition-colors z-20"
+                aria-label="Previous image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+            )}
             
-            <button
-              onClick={() => navigateImage('next')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-3 text-gray-800 hover:bg-white transition-colors z-20"
-              aria-label="Next image"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
+            {selectedImageIndex < visibleImages.length - 1 && (
+              <button
+                onClick={() => {
+                  const nextImage = visibleImages[selectedImageIndex + 1];
+                  if (nextImage?.url) handleThumbnailClick(nextImage);
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-3 text-gray-800 hover:bg-white transition-colors z-20"
+                aria-label="Next image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+            )}
 
             {selectedImage && (
               <div className="relative w-full h-full min-h-[50vh]">
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center z-10">
                     <div className="h-16 w-16 rounded-full border-4 border-t-transparent border-white animate-spin"></div>
+                  </div>
+                )}
+                {imageError && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10 text-white bg-black/50">
+                    <p>Failed to load image. Click to try again.</p>
                   </div>
                 )}
                 <div className="relative w-full h-full">
@@ -302,7 +322,11 @@ URL: ${url.split('?')[0]}
                       handleImageLoadStart(selectedImage);
                       handleImageLoad(selectedImage);
                     }}
-                    onError={() => setIsLoading(false)}
+                    onError={() => {
+                      console.error('Image failed to load:', selectedImage);
+                      setImageError(true);
+                      setIsLoading(false);
+                    }}
                   />
                 </div>
               </div>
@@ -311,6 +335,7 @@ URL: ${url.split('?')[0]}
               onClick={() => {
                 setSelectedImage(null);
                 setSelectedImageIndex(-1);
+                setImageError(false);
               }}
               className="absolute -top-4 right-0 rounded-full bg-white/80 p-2 text-gray-800 hover:bg-white"
             >
