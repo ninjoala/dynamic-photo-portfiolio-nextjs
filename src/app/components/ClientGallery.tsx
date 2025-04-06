@@ -9,6 +9,8 @@ interface GalleryImage {
   name: string;
   url: string;
   thumbnailUrl: string;
+  width?: number;
+  height?: number;
 }
 
 interface ClientGalleryProps {
@@ -34,6 +36,27 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const metricsRef = useRef<Map<string, ImageLoadMetrics>>(new Map());
   const [metrics, setMetrics] = useState<string[]>([]);
   const batchStartTimeRef = useRef<number>(0);
+  
+  // Preload the full-size version of recently viewed thumbnails
+  const preloadFullSizeImage = (imageUrl: string) => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = imageUrl;
+    document.head.appendChild(link);
+  };
+
+  // Handle thumbnail click with preloading
+  const handleThumbnailClick = (image: GalleryImage) => {
+    if (!image.url) return;
+    
+    setSelectedImage(image.url);
+    
+    // Preload next few images in the batch
+    const currentIndex = visibleImages.findIndex(img => img.key === image.key);
+    const nextImages = visibleImages.slice(currentIndex + 1, currentIndex + 4);
+    nextImages.forEach(img => img.url && preloadFullSizeImage(img.url));
+  };
 
   // Track image load complete
   const handleImageLoadComplete = (url: string) => {
@@ -129,7 +152,8 @@ URL: ${url.split('?')[0]}
             <div
               key={image.key}
               className="relative aspect-square cursor-pointer overflow-hidden rounded-lg"
-              onClick={() => image.url && setSelectedImage(image.url)}
+              onClick={() => handleThumbnailClick(image)}
+              onMouseEnter={() => image.url && preloadFullSizeImage(image.url)}
             >
               <Image
                 src={image.thumbnailUrl}
@@ -171,14 +195,14 @@ URL: ${url.split('?')[0]}
               <Image
                 src={selectedImage}
                 alt="Full size image"
-                width={1200}
-                height={800}
+                fill
+                sizes="90vw"
                 className="rounded-lg object-contain"
                 onClick={() => setSelectedImage(null)}
                 priority
-                quality={85}
+                quality={90}
                 onLoadingComplete={() => handleImageLoadComplete(selectedImage)}
-                onLoadStart={() => handleImageLoadStart(selectedImage)}
+                onLoad={() => handleImageLoadStart(selectedImage)}
               />
             )}
             <button
