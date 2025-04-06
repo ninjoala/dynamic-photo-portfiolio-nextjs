@@ -4,14 +4,20 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "npm run generate-image-data && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-image-data": "tsx scripts/generate-image-data.ts"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.1",
+    "@uploadthing/react": "^7.3.0",
+    "dotenv": "^16.4.7",
     "next": "15.1.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tsx": "^4.19.3",
+    "uploadthing": "^7.6.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -13,7 +13,13 @@ const ContentSecurityPolicy = `
 
 const nextConfig: NextConfig = {  
   images: {
-    domains: ['picsum.photos'],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+        pathname: "/f/**",
+      }
+    ],
     formats: ['image/avif', 'image/webp'],
   },
   async headers() {

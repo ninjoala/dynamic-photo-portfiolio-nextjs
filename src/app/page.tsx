@@ -44,15 +44,17 @@ export default async function HomePage({
     <main className="min-h-screen flex flex-col items-center justify-center p-8 text-center">
       <div className="max-w-2xl mx-auto">
         {/* Hero image */}
-        <div className="relative w-full h-64 mb-8 overflow-hidden rounded-lg">
-          <Image 
-            src={config.images.hero} 
-            alt="Hero image"
-            fill
-            style={{ objectFit: "cover" }}
-            priority
-          />
-        </div>
+        {config.images.hero && (
+          <div className="relative w-full h-64 mb-8 overflow-hidden rounded-lg">
+            <Image 
+              src={config.images.hero} 
+              alt="Hero image"
+              fill
+              style={{ objectFit: "cover" }}
+              priority
+            />
+          </div>
+        )}
         
         <h1 className="text-4xl font-bold mb-6" style={{ color: config.theme.primaryColor }}>
           {config.text.heading}

@@ -195,94 +195,125 @@ const loremText = {
   long: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eget felis eget urna ultrices ultricies vel in metus. Cras porta semper magna. Mauris eget elit ut quam feugiat tincidunt non nec elit. Proin vel libero vitae nunc eleifend pellentesque. Fusce a augue eget turpis tincidunt lobortis vel non velit."
 };
 
-// Picsum placeholder images
-const placeholderImages: ImageConfig = {
-  hero: "https://picsum.photos/id/164/1200/600",  // Landscape format for hero
+// Images section
+const images: ImageConfig = {
+  hero: "",
   logo: {
-    light: "https://picsum.photos/id/28/200/100",    // Logo format
-    dark: "https://picsum.photos/id/28/200/100"      // Same logo for dark mode
+    light: "",
+    dark: ""
   },
-  favicon: "https://picsum.photos/id/28/32/32",      // Favicon size
-  ogImage: "https://picsum.photos/id/164/1200/630",  // Open Graph image
-  profile: "https://picsum.photos/id/64/400/400",    // Square for profile pic
-  gallery: [
-    "https://picsum.photos/id/239/800/600",         // Gallery images
-    "https://picsum.photos/id/42/800/600",
-    "https://picsum.photos/id/119/800/600",
-    "https://picsum.photos/id/188/800/600"
-  ],
+  favicon: "",
+  ogImage: "",
+  profile: "",
+  gallery: [],
   backgrounds: {
-    about: "https://picsum.photos/id/180/1920/1080",
-    contact: "https://picsum.photos/id/183/1920/1080",
-    portfolio: "https://picsum.photos/id/187/1920/1080"
+    about: "",
+    contact: "",
+    portfolio: ""
   }
 };
 
-// Themed placeholder images for different photography types
-const realEstateImages: ImageConfig = {
-  hero: "https://picsum.photos/id/87/1200/600",     // Architecture
-  logo: {
-    light: "https://picsum.photos/id/28/200/100",
-    dark: "https://picsum.photos/id/28/200/100"
+// Theme configurations
+const themes = {
+  default: {
+    images: {
+      hero: "",
+      logo: {
+        light: "",
+        dark: ""
+      },
+      favicon: "",
+      ogImage: "",
+      profile: "",
+      gallery: [],
+      backgrounds: {
+        about: "",
+        contact: "",
+        portfolio: ""
+      }
+    }
   },
-  favicon: "https://picsum.photos/id/28/32/32",
-  ogImage: "https://picsum.photos/id/87/1200/630",
-  profile: "https://picsum.photos/id/64/400/400",
-  gallery: [
-    "https://picsum.photos/id/173/800/600",        // Buildings
-    "https://picsum.photos/id/110/800/600", 
-    "https://picsum.photos/id/189/800/600",
-    "https://picsum.photos/id/174/800/600"
-  ],
-  backgrounds: {
-    about: "https://picsum.photos/id/173/1920/1080",
-    contact: "https://picsum.photos/id/110/1920/1080",
-    portfolio: "https://picsum.photos/id/189/1920/1080"
+  architecture: {
+    images: {
+      hero: "",
+      logo: {
+        light: "",
+        dark: ""
+      },
+      favicon: "",
+      ogImage: "",
+      profile: "",
+      gallery: [],
+      backgrounds: {
+        about: "",
+        contact: "",
+        portfolio: ""
+      }
+    }
+  },
+  family: {
+    images: {
+      hero: "",
+      logo: {
+        light: "",
+        dark: ""
+      },
+      favicon: "",
+      ogImage: "",
+      profile: "",
+      gallery: [],
+      backgrounds: {
+        about: "",
+        contact: "",
+        portfolio: ""
+      }
+    }
+  },
+  romantic: {
+    images: {
+      hero: "",
+      logo: {
+        light: "",
+        dark: ""
+      },
+      favicon: "",
+      ogImage: "",
+      profile: "",
+      gallery: [],
+      backgrounds: {
+        about: "",
+        contact: "",
+        portfolio: ""
+      }
+    }
   }
 };
 
-const familyImages: ImageConfig = {
-  hero: "https://picsum.photos/id/25/1200/600",    // People
-  logo: {
-    light: "https://picsum.photos/id/28/200/100",
-    dark: "https://picsum.photos/id/28/200/100"
-  },
-  favicon: "https://picsum.photos/id/28/32/32",
-  ogImage: "https://picsum.photos/id/25/1200/630",
-  profile: "https://picsum.photos/id/64/400/400",
-  gallery: [
-    "https://picsum.photos/id/177/800/600",       // Outdoors
-    "https://picsum.photos/id/61/800/600",
-    "https://picsum.photos/id/65/800/600",
-    "https://picsum.photos/id/160/800/600"
-  ],
-  backgrounds: {
-    about: "https://picsum.photos/id/177/1920/1080",
-    contact: "https://picsum.photos/id/61/1920/1080",
-    portfolio: "https://picsum.photos/id/65/1920/1080"
-  }
-};
-
-const weddingImages: ImageConfig = {
-  hero: "https://picsum.photos/id/56/1200/600",    // Romantic
-  logo: {
-    light: "https://picsum.photos/id/28/200/100",
-    dark: "https://picsum.photos/id/28/200/100"
-  },
-  favicon: "https://picsum.photos/id/28/32/32",
-  ogImage: "https://picsum.photos/id/56/1200/630",
-  profile: "https://picsum.photos/id/64/400/400",
-  gallery: [
-    "https://picsum.photos/id/152/800/600",
-    "https://picsum.photos/id/106/800/600",
-    "https://picsum.photos/id/133/800/600",
-    "https://picsum.photos/id/24/800/600"
-  ],
-  backgrounds: {
-    about: "https://picsum.photos/id/152/1920/1080",
-    contact: "https://picsum.photos/id/106/1920/1080",
-    portfolio: "https://picsum.photos/id/133/1920/1080"
-  }
+// Portfolio section
+const portfolio: PortfolioConfig = {
+  categories: [
+    {
+      id: "architecture",
+      title: "Architecture Portfolio",
+      description: "Stunning architectural photography showcasing modern design",
+      coverImage: "",
+      images: []
+    },
+    {
+      id: "family",
+      title: "Family Portfolio", 
+      description: "Capturing precious family moments and memories",
+      coverImage: "",
+      images: []
+    },
+    {
+      id: "romantic",
+      title: "Romantic Portfolio",
+      description: "Beautiful and intimate romantic photography",
+      coverImage: "",
+      images: []
+    }
+  ]
 };
 
 // Default configuration
@@ -308,7 +339,7 @@ const defaultConfig: SiteConfig = {
     contactText: loremText.medium,
     footerText: loremText.medium
   },
-  images: placeholderImages,
+  images: images,
   theme: {
     primaryColor: "#4A5568",
     secondaryColor: "#CBD5E0",
@@ -339,46 +370,7 @@ const defaultConfig: SiteConfig = {
     twitter: "https://twitter.com/newnanphotography",
     linkedin: "https://linkedin.com/company/newnanphotography"
   },
-  portfolio: {
-    categories: [
-      {
-        id: "real-estate",
-        title: "Real Estate",
-        description: "Capturing the beauty of properties with precision and style.",
-        coverImage: "https://picsum.photos/id/87/1200/600",
-        images: [
-          { src: "https://picsum.photos/id/173/800/600", alt: "Architecture", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/110/800/600", alt: "Buildings", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/189/800/600", alt: "Architecture", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/174/800/600", alt: "Architecture", width: 800, height: 600 }
-        ]
-      },
-      {
-        id: "family",
-        title: "Family",
-        description: "Cherish your family moments forever.",
-        coverImage: "https://picsum.photos/id/25/1200/600",
-        images: [
-          { src: "https://picsum.photos/id/177/800/600", alt: "Outdoors", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/61/800/600", alt: "Family", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/65/800/600", alt: "Family", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/160/800/600", alt: "Family", width: 800, height: 600 }
-        ]
-      },
-      {
-        id: "wedding",
-        title: "Wedding",
-        description: "We tell your love story through stunning images.",
-        coverImage: "https://picsum.photos/id/56/1200/600",
-        images: [
-          { src: "https://picsum.photos/id/152/800/600", alt: "Romantic", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/106/800/600", alt: "Romantic", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/133/800/600", alt: "Romantic", width: 800, height: 600 },
-          { src: "https://picsum.photos/id/24/800/600", alt: "Romantic", width: 800, height: 600 }
-        ]
-      }
-    ]
-  },
+  portfolio: portfolio,
   pricing: {
     packages: [
       {
@@ -485,6 +477,7 @@ const defaultConfig: SiteConfig = {
 export const siteVersions: Record<string, SiteConfig> = {
   // Real Estate Photography Version
   "newnanrealestatephotography": {
+    ...defaultConfig,
     text: {
       ...defaultConfig.text,
       heading: "Welcome to Real Estate Photography",
@@ -493,7 +486,7 @@ export const siteVersions: Record<string, SiteConfig> = {
       aboutTitle: "About Our Real Estate Photography",
       servicesTitle: "Our Real Estate Services"
     },
-    images: realEstateImages,
+    images: themes.architecture.images,
     theme: {
       ...defaultConfig.theme,
       primaryColor: "#2D3748"
@@ -502,6 +495,7 @@ export const siteVersions: Record<string, SiteConfig> = {
   
   // Family Photography Version
   "newnanfamilyphotography": {
+    ...defaultConfig,
     text: {
       ...defaultConfig.text,
       heading: "Welcome to Family Photography",
@@ -510,7 +504,7 @@ export const siteVersions: Record<string, SiteConfig> = {
       aboutTitle: "About Our Family Photography",
       servicesTitle: "Our Family Photo Services"
     },
-    images: familyImages,
+    images: themes.family.images,
     theme: {
       ...defaultConfig.theme,
       primaryColor: "#68A1DC"
@@ -519,6 +513,7 @@ export const siteVersions: Record<string, SiteConfig> = {
   
   // Wedding Photography Version
   "newnanweddingphotography": {
+    ...defaultConfig,
     text: {
       ...defaultConfig.text,
       heading: "Welcome to Wedding Photography",
@@ -527,7 +522,7 @@ export const siteVersions: Record<string, SiteConfig> = {
       aboutTitle: "About Our Wedding Photography",
       servicesTitle: "Our Wedding Services"
     },
-    images: weddingImages,
+    images: themes.romantic.images,
     theme: {
       ...defaultConfig.theme,
       primaryColor: "#9F7AEA"
