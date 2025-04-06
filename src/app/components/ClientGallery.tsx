@@ -29,6 +29,7 @@ interface ImageLoadMetrics {
 
 export function ClientGallery({ initialImages }: ClientGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   const [visibleImages, setVisibleImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const currentPage = useRef(1);
@@ -51,10 +52,58 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     document.head.appendChild(link);
   };
 
+  // Handle navigation between images
+  const navigateImage = (direction: 'prev' | 'next') => {
+    const currentIndex = selectedImageIndex;
+    let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    
+    // Handle wrapping
+    if (newIndex < 0) {
+      newIndex = visibleImages.length - 1;
+    } else if (newIndex >= visibleImages.length) {
+      newIndex = 0;
+    }
+    
+    const newImage = visibleImages[newIndex];
+    if (newImage?.url) {
+      setSelectedImageIndex(newIndex);
+      setIsLoading(true);
+      setSelectedImage(newImage.url);
+      
+      // Preload the next image in the sequence
+      const nextIndex = direction === 'next' ? newIndex + 1 : newIndex - 1;
+      const nextImage = visibleImages[nextIndex];
+      if (nextImage?.url) {
+        preloadFullSizeImage(nextImage.url);
+      }
+    }
+  };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedImage) {
+        if (e.key === 'ArrowLeft') {
+          navigateImage('prev');
+        } else if (e.key === 'ArrowRight') {
+          navigateImage('next');
+        } else if (e.key === 'Escape') {
+          setSelectedImage(null);
+          setSelectedImageIndex(-1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImage, visibleImages]);
+
   // Handle thumbnail click with preloading
   const handleThumbnailClick = (image: GalleryImage) => {
     if (!image.url) return;
     
+    const index = visibleImages.findIndex(img => img.key === image.key);
+    setSelectedImageIndex(index);
     setIsLoading(true);
     setSelectedImage(image.url);
     
@@ -64,8 +113,7 @@ export function ClientGallery({ initialImages }: ClientGalleryProps) {
     }, 2000);
     
     // Preload next few images in the batch
-    const currentIndex = visibleImages.findIndex(img => img.key === image.key);
-    const nextImages = visibleImages.slice(currentIndex + 1, currentIndex + 4);
+    const nextImages = visibleImages.slice(index + 1, index + 4);
     nextImages.forEach(img => img.url && preloadFullSizeImage(img.url));
   };
 
@@ -201,13 +249,37 @@ URL: ${url.split('?')[0]}
 
       <Dialog
         open={selectedImage !== null}
-        onClose={() => setSelectedImage(null)}
+        onClose={() => {
+          setSelectedImage(null);
+          setSelectedImageIndex(-1);
+        }}
         className="relative z-50"
       >
         <div className="fixed inset-0 bg-black/70" aria-hidden="true" />
         
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="relative w-full h-full max-w-[90vw] max-h-[90vh]">
+            {/* Navigation Arrows */}
+            <button
+              onClick={() => navigateImage('prev')}
+              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-3 text-gray-800 hover:bg-white transition-colors z-20"
+              aria-label="Previous image"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            
+            <button
+              onClick={() => navigateImage('next')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-3 text-gray-800 hover:bg-white transition-colors z-20"
+              aria-label="Next image"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+
             {selectedImage && (
               <div className="relative w-full h-full min-h-[50vh]">
                 {isLoading && (
@@ -223,7 +295,7 @@ URL: ${url.split('?')[0]}
                     style={{ objectFit: 'contain' }}
                     sizes="90vw"
                     className="rounded-lg"
-                    onClick={() => setSelectedImage(null)}
+                    onClick={(e) => e.stopPropagation()}
                     priority
                     quality={90}
                     onLoad={() => {
@@ -236,7 +308,10 @@ URL: ${url.split('?')[0]}
               </div>
             )}
             <button
-              onClick={() => setSelectedImage(null)}
+              onClick={() => {
+                setSelectedImage(null);
+                setSelectedImageIndex(-1);
+              }}
               className="absolute -top-4 right-0 rounded-full bg-white/80 p-2 text-gray-800 hover:bg-white"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6">
