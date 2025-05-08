@@ -1,35 +1,18 @@
-import type { NextConfig } from "next";
-
-const ContentSecurityPolicy = `
-  default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline' giscus.app cloud.umami.is umami.emberwood.io;
-  style-src 'self' 'unsafe-inline';
-  img-src * blob: data:;
-  media-src *.s3.amazonaws.com;
-  connect-src *;
-  font-src 'self';
-  frame-src giscus.app;
-`;
-
-const nextConfig: NextConfig = {  
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "utfs.io",
-        pathname: "/f/**",
-      }
-    ],
-    formats: ['image/avif', 'image/webp'],
+    domains: ['wasabindmdemo.imgix.net'],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
   },
   async headers() {
     return [
       {
-        source: "/(.*)", // Apply to all routes
+        source: '/(.*)',
         headers: [
           {
-            key: "Content-Security-Policy",
-            value: ContentSecurityPolicy.replace(/\n/g, ""), // Remove newlines
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },

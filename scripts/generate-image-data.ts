@@ -1,68 +1,82 @@
-import { UTApi } from "uploadthing/server";
+import { S3Client, ListObjectsV2Command, _Object } from "@aws-sdk/client-s3";
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import { createImgixUrl } from '../src/utils/imgix';
 
-// Load environment variables from .env file
-dotenv.config();
+// Load environment variables from both files
+dotenv.config({ path: '.env' });
+dotenv.config({ path: '.env.local' });
 
-// Check if we're in production environment
-const isProduction = process.env.NODE_ENV === 'production';
-
-if (!process.env.UPLOADTHING_TOKEN) {
-  if (isProduction) {
-    console.warn('⚠️ UPLOADTHING_TOKEN is not set, but continuing in production environment with empty data');
-    
-    // Create an empty images.json file
-    const outputPath = path.join(process.cwd(), 'src/data/images.json');
-    
-    // Ensure the directory exists
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    
-    // Write empty data
-    fs.writeFileSync(
-      outputPath,
-      JSON.stringify({ images: [], lastUpdated: new Date().toISOString() }, null, 2)
-    );
-    
-    console.log('✅ Empty image data generated for production');
-    process.exit(0);
-  } else {
-    //console.error('❌ UPLOADTHING_TOKEN is not set in .env file');
-    //process.exit(1);
+const s3Client = new S3Client({
+  region: process.env.WASABI_REGION || 'us-east-1',
+  endpoint: process.env.WASABI_ENDPOINT || 'https://s3.wasabisys.com',
+  credentials: {
+    accessKeyId: process.env.WASABI_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.WASABI_SECRET_ACCESS_KEY || ''
   }
-}
-
-const utapi = new UTApi({
-  token: process.env.UPLOADTHING_TOKEN,
-  fetch: fetch
 });
+
+interface ImageData {
+  images: Array<{
+    key: string;
+    name: string;
+    url: string;
+    thumbnailUrl: string;
+  }>;
+  lastUpdated: string;
+}
 
 async function generateImageData() {
   try {
-    const response = await utapi.listFiles();
-    const images = response.files.map(file => {
-      const baseUrl = `https://utfs.io/f/${file.key}`;
-      return {
-        key: file.key,
-        name: file.name,
-        url: baseUrl,
-        thumbnailUrl: `${baseUrl}?w=400&quality=75`
-      };
+    console.log('🔍 Fetching images from Wasabi...');
+    
+    // List all objects in the bucket
+    const command = new ListObjectsV2Command({
+      Bucket: process.env.WASABI_BUCKET_NAME,
     });
 
-    const outputPath = path.join(process.cwd(), 'src/data/images.json');
+    const response = await s3Client.send(command);
     
-    // Ensure the directory exists
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    
+    if (!response.Contents) {
+      throw new Error('No contents found in bucket');
+    }
+
+    // Generate URLs for each image
+    const images = response.Contents
+      .filter((obj: _Object) => obj.Key && /\.(jpg|jpeg|png|gif|webp)$/i.test(obj.Key))
+      .map((obj: _Object, index: number) => {
+        const filename = obj.Key as string;
+        return {
+          key: `img_${index}`,
+          name: filename,
+          // Full size image
+          url: createImgixUrl(filename),
+          // Thumbnail with smaller dimensions and higher compression
+          thumbnailUrl: createImgixUrl(filename, {
+            width: 400,
+            height: 400,
+            quality: 60
+          })
+        };
+      });
+
+    const imageData: ImageData = {
+      images,
+      lastUpdated: new Date().toISOString()
+    };
+
+    // Write directly to public/data directory
+    const outputDir = path.join(process.cwd(), 'public/data');
+    fs.mkdirSync(outputDir, { recursive: true });
+
     // Write the data
-    fs.writeFileSync(
-      outputPath,
-      JSON.stringify({ images, lastUpdated: new Date().toISOString() }, null, 2)
-    );
+    const outputPath = path.join(outputDir, 'images.json');
+    fs.writeFileSync(outputPath, JSON.stringify(imageData, null, 2));
 
     console.log('✅ Image data generated successfully');
+    console.log(`📊 Total images processed: ${images.length}`);
+    console.log(`💾 Data written to: ${outputPath}`);
   } catch (error) {
     console.error('❌ Error generating image data:', error);
     process.exit(1);

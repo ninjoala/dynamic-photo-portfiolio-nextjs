@@ -1,0 +1,143 @@
+'use client';
+
+import React, { useRef, useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+interface ImageData {
+  key: string;
+  name: string;
+  url: string;
+  thumbnailUrl: string;
+}
+
+export default function VirtualGallery() {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const [images, setImages] = useState<ImageData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Calculate the number of columns based on viewport width
+  const [columns, setColumns] = useState(3);
+
+  // Load images from images.json
+  useEffect(() => {
+    async function loadImages() {
+      try {
+        const response = await fetch('/data/images.json');
+        if (!response.ok) throw new Error('Failed to fetch images');
+        const data = await response.json();
+        
+        // Duplicate the images 1000 times
+        const duplicatedImages = Array.from({ length: 1000 }, (_, i) => 
+          data.images.map((img: ImageData) => ({
+            ...img,
+            key: `${img.key}_${i}` // Ensure unique keys
+          }))
+        ).flat();
+        
+        setImages(duplicatedImages);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading images:', error);
+        setLoading(false);
+      }
+    }
+
+    loadImages();
+  }, []);
+  
+  useEffect(() => {
+    const updateColumns = () => {
+      const width = window.innerWidth;
+      if (width < 640) setColumns(1);
+      else if (width < 768) setColumns(2);
+      else if (width < 1024) setColumns(3);
+      else setColumns(4);
+    };
+    
+    updateColumns();
+    window.addEventListener('resize', updateColumns);
+    return () => window.removeEventListener('resize', updateColumns);
+  }, []);
+
+  // Calculate rows for virtualization
+  const rows = Math.ceil(images.length / columns);
+  
+  const virtualizer = useVirtualizer({
+    count: rows,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 300, // Estimate row height
+    overscan: 5, // Number of rows to render outside of the visible area
+  });
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-900 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // Get the appropriate grid columns class based on the current column count
+  const gridColsClass = {
+    1: 'grid-cols-1',
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+  }[columns];
+
+  return (
+    <div 
+      ref={parentRef}
+      className="h-[calc(100vh-8rem)] overflow-auto"
+      style={{
+        contain: 'strict',
+      }}
+    >
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const startIndex = virtualRow.index * columns;
+          const rowImages = images.slice(startIndex, startIndex + columns);
+
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '300px',
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+              className={`grid ${gridColsClass} gap-4 px-4`}
+            >
+              {rowImages.map((image) => (
+                <div
+                  key={image.key}
+                  className="relative aspect-square overflow-hidden rounded-lg bg-gray-100"
+                >
+                  <Image
+                    src={image.thumbnailUrl}
+                    alt={`Gallery image ${image.name}`}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover hover:scale-105 transition-transform duration-300"
+                    priority={virtualRow.index < 2} // Prioritize loading first 2 rows
+                    quality={75}
+                  />
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+} 
