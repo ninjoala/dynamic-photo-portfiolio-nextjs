@@ -3,8 +3,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { fetchImageData } from '../../utils/fetchImageData';
+import type { ImageData } from '../../types/images';
 
-interface ImageData {
+interface GalleryImage {
   key: string;
   name: string;
   url: string;
@@ -13,35 +15,38 @@ interface ImageData {
 
 export default function VirtualGallery() {
   const parentRef = useRef<HTMLDivElement>(null);
-  const [images, setImages] = useState<ImageData[]>([]);
+  const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Calculate the number of columns based on viewport width
   const [columns, setColumns] = useState(3);
 
   // Load images from images.json
-  useEffect(() => {
-    async function loadImages() {
-      try {
-        const response = await fetch('/data/images.json');
-        if (!response.ok) throw new Error('Failed to fetch images');
-        const data = await response.json();
-        
-        // Duplicate the images 1000 times
-        const duplicatedImages = Array.from({ length: 1000 }, (_, i) => 
-          data.images.map((img: ImageData) => ({
-            ...img,
-            key: `${img.key}_${i}` // Ensure unique keys
-          }))
-        ).flat();
-        
-        setImages(duplicatedImages);
-        setLoading(false);
-      } catch {
-        setLoading(false);
-      }
+  const loadImages = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchImageData();
+      
+      // Duplicate the images 1000 times
+      const duplicatedImages = Array.from({ length: 1000 }, (_, i) => 
+        data.images.map((img: GalleryImage) => ({
+          ...img,
+          key: `${img.key}_${i}` // Ensure unique keys
+        }))
+      ).flat();
+      
+      setImages(duplicatedImages);
+    } catch (err) {
+      setError('Failed to load images. Please try again.');
+      console.error('Error loading images:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadImages();
   }, []);
   
@@ -73,6 +78,20 @@ export default function VirtualGallery() {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-8rem)]">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-900 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col justify-center items-center h-[calc(100vh-8rem)] space-y-4">
+        <p className="text-red-600">{error}</p>
+        <button
+          onClick={loadImages}
+          className="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors"
+        >
+          Retry
+        </button>
       </div>
     );
   }
