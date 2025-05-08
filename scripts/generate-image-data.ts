@@ -29,8 +29,6 @@ interface ImageData {
 
 async function generateImageData() {
   try {
-    console.log('🔍 Fetching images from Wasabi...');
-    
     // List all objects in the bucket
     const command = new ListObjectsV2Command({
       Bucket: process.env.WASABI_BUCKET_NAME,
@@ -74,11 +72,9 @@ async function generateImageData() {
     const outputPath = path.join(outputDir, 'images.json');
     fs.writeFileSync(outputPath, JSON.stringify(imageData, null, 2));
 
-    console.log('✅ Image data generated successfully');
-    console.log(`📊 Total images processed: ${images.length}`);
-    console.log(`💾 Data written to: ${outputPath}`);
+    console.log(`Generated image data for ${images.length} images`);
   } catch (error) {
-    console.error('❌ Error generating image data:', error);
+    console.error('Failed to generate image data:', error);
     process.exit(1);
   }
 }

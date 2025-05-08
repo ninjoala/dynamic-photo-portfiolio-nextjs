@@ -37,8 +37,7 @@ export default function VirtualGallery() {
         
         setImages(duplicatedImages);
         setLoading(false);
-      } catch (error) {
-        console.error('Error loading images:', error);
+      } catch {
         setLoading(false);
       }
     }
