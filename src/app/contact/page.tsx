@@ -30,7 +30,7 @@ export default function ContactPage() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-light mb-4">Get in Touch</h1>
-          <p className="text-xl text-gray-600">Let's discuss your photography needs</p>
+          <p className="text-xl text-gray-600">Let&apos;s discuss your photography needs</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">

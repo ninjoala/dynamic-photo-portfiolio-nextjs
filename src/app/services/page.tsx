@@ -73,7 +73,7 @@ export default function ServicesPage() {
           <h2 className="text-2xl font-light mb-4">Custom Packages Available</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Need something specific? Contact us to discuss custom photography packages 
-            tailored to your unique requirements. We're happy to create a personalized 
+            tailored to your unique requirements. We&apos;re happy to create a personalized 
             solution that meets your needs and budget.
           </p>
           <button className="mt-8 bg-black text-white py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors duration-300">
