@@ -4,7 +4,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { fetchImageData } from '../../utils/fetchImageData';
-import type { ImageData } from '../../types/images';
 
 interface GalleryImage {
   key: string;
