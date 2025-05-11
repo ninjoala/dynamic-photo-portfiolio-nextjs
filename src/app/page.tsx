@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { siteVersions } from "./config";
 import Image from "next/image";
 import Link from 'next/link';
+import { createImgixUrl } from '../utils/imgix';
 
 // Helper function to parse domain
 function parseDomain(hostname: string): string {
@@ -51,7 +52,13 @@ export default async function HomePage({
       <section className="relative h-screen">
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4"
+            src={createImgixUrl('re-hero.jpg', {
+              width: 1920,
+              height: 1080,
+              quality: 85,
+              fit: 'max',
+              crop: 'focalpoint'
+            })}
             alt="Hero background"
             fill
             className="object-cover"
