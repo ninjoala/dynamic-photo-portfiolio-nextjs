@@ -23,7 +23,7 @@ export default function Navigation() {
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="text-xl font-semibold text-gray-800">
-              Photography
+              Nick Dobos Media
             </Link>
           </div>
 

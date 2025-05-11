@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaInstagram, FaFacebook, FaTwitter } from 'react-icons/fa';
+import { FaPhone, FaEnvelope, FaInstagram, FaFacebook, FaTwitter } from 'react-icons/fa';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -116,22 +116,15 @@ export default function ContactPage() {
                   <FaPhone className="text-xl text-gray-600" />
                   <div>
                     <p className="font-medium">Phone</p>
-                    <p className="text-gray-600">+1 (555) 123-4567</p>
+                    <p className="text-gray-600">+1 (678) 850-6600</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <FaEnvelope className="text-xl text-gray-600" />
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-gray-600">contact@yourphotography.com</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <FaMapMarkerAlt className="text-xl text-gray-600" />
-                  <div>
-                    <p className="font-medium">Studio Location</p>
-                    <p className="text-gray-600">123 Photography Street</p>
-                    <p className="text-gray-600">New York, NY 10001</p>
+                    <p className="text-gray-600">nick@nickdobosmedia.com
+                    </p>
                   </div>
                 </div>
               </div>
@@ -152,23 +145,6 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-light mb-6">Business Hours</h2>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Monday - Friday</span>
-                  <span className="font-medium">9:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Saturday</span>
-                  <span className="font-medium">10:00 AM - 4:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Sunday</span>
-                  <span className="font-medium">Closed</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
