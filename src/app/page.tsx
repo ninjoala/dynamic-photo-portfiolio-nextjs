@@ -62,10 +62,10 @@ export default async function HomePage({
         <div className="relative h-full flex items-center justify-center text-white">
           <div className="text-center space-y-6 px-4">
             <h1 className="text-5xl md:text-7xl font-bold animate-fade-up">
-              Capturing Life&apos;s Moments
+              Professional Photos for Newnan&apos;s Top Agents
             </h1>
             <p className="text-xl md:text-2xl max-w-2xl mx-auto animate-fade-up-delay">
-              Professional photography that tells your story through a lens of artistry and emotion
+                Flexible scheduling. Local expertise. A friendly, professional experience every time.
             </p>
             <div className="pt-4">
               <Link 
@@ -142,8 +142,8 @@ export default async function HomePage({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Event Photography</h3>
-              <p className="text-gray-600">Professional coverage for your special occasions</p>
+              <h3 className="text-xl font-semibold mb-2">Real Estate Photography</h3>
+              <p className="text-gray-600">Bright, crisp images that help homes stand out online and attract more buyers.</p>
             </div>
             <div className="p-6 bg-white rounded-lg shadow-sm">
               <div className="h-12 w-12 mx-auto mb-4 bg-black text-white rounded-full flex items-center justify-center">
@@ -151,8 +151,8 @@ export default async function HomePage({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Portrait Sessions</h3>
-              <p className="text-gray-600">Capturing your best angles and expressions</p>
+              <h3 className="text-xl font-semibold mb-2">Agent Branding Sessions</h3>
+              <p className="text-gray-600">Professional portraits and lifestyle shots perfect for marketing, social media, and print.</p>
             </div>
             <div className="p-6 bg-white rounded-lg shadow-sm">
               <div className="h-12 w-12 mx-auto mb-4 bg-black text-white rounded-full flex items-center justify-center">
@@ -160,8 +160,8 @@ export default async function HomePage({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Commercial Work</h3>
-              <p className="text-gray-600">High-quality images for your business needs</p>
+              <h3 className="text-xl font-semibold mb-2">Media Upgrades Coming Soon</h3>
+              <p className="text-gray-600">New services like drone, video, and 3D tours launching soon - let&apos;s grow together.</p>
             </div>
           </div>
         </div>
@@ -170,8 +170,8 @@ export default async function HomePage({
       {/* Call to Action */}
       <section className="py-20 px-4 bg-black text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Create Something Beautiful?</h2>
-          <p className="text-xl mb-8">Let&apos;s work together to capture your vision</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Let&apos;s make your next listing shine.</h2>
+          <p className="text-xl mb-8">Reach out to schedule your shoot or ask about availability.</p>
           <Link 
             href="/contact" 
             className="inline-block px-8 py-3 bg-white text-black rounded-full hover:bg-opacity-90 transition-all text-lg"
