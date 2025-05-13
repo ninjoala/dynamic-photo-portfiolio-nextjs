@@ -43,8 +43,7 @@ export default async function HomePage({
   const configKey = Object.keys(siteVersions).includes(parsedDomain) 
     ? parsedDomain 
     : 'default';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const config = siteVersions[configKey];  // Keep this for future use
+  const config = siteVersions[configKey];
 
   return (
     <main className="min-h-screen">
@@ -69,10 +68,10 @@ export default async function HomePage({
         <div className="relative h-full flex items-center justify-center text-white">
           <div className="text-center space-y-6 px-4">
             <h1 className="text-5xl md:text-7xl font-bold animate-fade-up">
-              Professional Photos for Newnan&apos;s Top Agents
+              {config.text.hero.heading}
             </h1>
             <p className="text-xl md:text-2xl max-w-2xl mx-auto animate-fade-up-delay">
-                Flexible scheduling. Local expertise. A friendly, professional experience every time.
+              {config.text.hero.subtext}
             </p>
             <div className="pt-4">
               <Link 

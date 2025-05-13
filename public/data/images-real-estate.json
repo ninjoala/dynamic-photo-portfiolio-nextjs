@@ -1,0 +1,72 @@
+{
+  "images": [
+    {
+      "key": "real-estate_0",
+      "name": "real-estate/5J8A7756.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/5J8A7756.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/5J8A7756.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_1",
+      "name": "real-estate/5J8A7849-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/5J8A7849-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/5J8A7849-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_2",
+      "name": "real-estate/DJI_20240918191021_0136_D-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/DJI_20240918191021_0136_D-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/DJI_20240918191021_0136_D-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_3",
+      "name": "real-estate/_DR62945-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/_DR62945-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/_DR62945-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_4",
+      "name": "real-estate/_DR62957-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/_DR62957-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/_DR62957-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_5",
+      "name": "real-estate/_DR62972-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/_DR62972-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/_DR62972-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_6",
+      "name": "real-estate/_DR62996-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/_DR62996-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/_DR62996-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_7",
+      "name": "real-estate/_DR65011-Edit.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/_DR65011-Edit.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/_DR65011-Edit.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_8",
+      "name": "real-estate/_DR65179-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/_DR65179-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/_DR65179-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_9",
+      "name": "real-estate/_DR65185-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/_DR65185-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/_DR65185-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    },
+    {
+      "key": "real-estate_10",
+      "name": "real-estate/_DR68261-HDR.jpg",
+      "url": "https://wasabindmdemo.imgix.net/real-estate/_DR68261-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp",
+      "thumbnailUrl": "https://wasabindmdemo.imgix.net/real-estate/_DR68261-HDR.jpg?fit=crop&crop=entropy&q=80&fm=webp&width=400&height=400&quality=60"
+    }
+  ],
+  "lastUpdated": "2025-05-13T00:22:40.738Z",
+  "category": "real-estate"
+}

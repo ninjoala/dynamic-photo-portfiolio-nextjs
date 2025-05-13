@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createImgixUrl } from '../src/utils/imgix';
+import { photographyCategories } from '../src/app/config';
 
 // Load environment variables from both files
 dotenv.config({ path: '.env' });
@@ -25,19 +26,22 @@ interface ImageData {
     thumbnailUrl: string;
   }>;
   lastUpdated: string;
+  category: string;
 }
 
-async function generateImageData() {
+async function generateImageDataForCategory(category: string, bucketFolder: string) {
   try {
-    // List all objects in the bucket
+    // List all objects in the bucket folder
     const command = new ListObjectsV2Command({
       Bucket: process.env.WASABI_BUCKET_NAME,
+      Prefix: `${bucketFolder}/` // Only list objects in this folder
     });
 
     const response = await s3Client.send(command);
     
     if (!response.Contents) {
-      throw new Error('No contents found in bucket');
+      console.warn(`No contents found in bucket folder: ${bucketFolder}`);
+      return;
     }
 
     // Generate URLs for each image
@@ -46,7 +50,7 @@ async function generateImageData() {
       .map((obj: _Object, index: number) => {
         const filename = obj.Key as string;
         return {
-          key: `img_${index}`,
+          key: `${category}_${index}`,
           name: filename,
           // Full size image
           url: createImgixUrl(filename),
@@ -61,22 +65,33 @@ async function generateImageData() {
 
     const imageData: ImageData = {
       images,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      category
     };
 
-    // Write directly to public/data directory
+    // Write to category-specific file in public/data directory
     const outputDir = path.join(process.cwd(), 'public/data');
     fs.mkdirSync(outputDir, { recursive: true });
 
-    // Write the data
-    const outputPath = path.join(outputDir, 'images.json');
+    const outputPath = path.join(outputDir, `images-${category}.json`);
     fs.writeFileSync(outputPath, JSON.stringify(imageData, null, 2));
 
-    console.log(`Generated image data for ${images.length} images`);
+    console.log(`Generated image data for ${images.length} images in category: ${category}`);
   } catch (error) {
-    console.error('Failed to generate image data:', error);
+    console.error(`Failed to generate image data for category ${category}:`, error);
+  }
+}
+
+async function generateAllImageData() {
+  try {
+    // Generate data for each photography category
+    for (const [categoryId, category] of Object.entries(photographyCategories)) {
+      await generateImageDataForCategory(categoryId, category.bucketFolder);
+    }
+  } catch (error) {
+    console.error('Failed to generate all image data:', error);
     process.exit(1);
   }
 }
 
-generateImageData(); 
+generateAllImageData(); 

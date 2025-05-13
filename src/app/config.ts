@@ -7,6 +7,21 @@ export interface NavigationConfig {
   }>;
 }
 
+// Photography category configuration
+export interface PhotographyCategory {
+  id: string;
+  title: string;
+  description: string;
+  bucketFolder: string; // The folder in Wasabi bucket containing the images
+  sampleImages?: string[]; // Optional sample images to show before loading from bucket
+  features?: string[]; // Special features or services offered for this category
+  priceRange?: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+}
+
 // Social media links
 export interface SocialConfig {
   instagram?: string;
@@ -144,6 +159,10 @@ export interface TextConfig {
   }>;
   contactText: string;
   footerText: string;
+  hero: {
+    heading: string;
+    subtext: string;
+  };
 }
 
 // Theme configuration
@@ -186,6 +205,7 @@ export interface SiteConfig {
     newsletter: boolean;
     clientProofing: boolean;
   };
+  photographyCategory: PhotographyCategory; // New field for category-specific configuration
 }
 
 // Default lorem text
@@ -210,82 +230,6 @@ const images: ImageConfig = {
     about: "",
     contact: "",
     portfolio: ""
-  }
-};
-
-// Theme configurations
-const themes = {
-  default: {
-    images: {
-      hero: "",
-      logo: {
-        light: "",
-        dark: ""
-      },
-      favicon: "",
-      ogImage: "",
-      profile: "",
-      gallery: [],
-      backgrounds: {
-        about: "",
-        contact: "",
-        portfolio: ""
-      }
-    }
-  },
-  architecture: {
-    images: {
-      hero: "",
-      logo: {
-        light: "",
-        dark: ""
-      },
-      favicon: "",
-      ogImage: "",
-      profile: "",
-      gallery: [],
-      backgrounds: {
-        about: "",
-        contact: "",
-        portfolio: ""
-      }
-    }
-  },
-  family: {
-    images: {
-      hero: "",
-      logo: {
-        light: "",
-        dark: ""
-      },
-      favicon: "",
-      ogImage: "",
-      profile: "",
-      gallery: [],
-      backgrounds: {
-        about: "",
-        contact: "",
-        portfolio: ""
-      }
-    }
-  },
-  romantic: {
-    images: {
-      hero: "",
-      logo: {
-        light: "",
-        dark: ""
-      },
-      favicon: "",
-      ogImage: "",
-      profile: "",
-      gallery: [],
-      backgrounds: {
-        about: "",
-        contact: "",
-        portfolio: ""
-      }
-    }
   }
 };
 
@@ -316,6 +260,112 @@ const portfolio: PortfolioConfig = {
   ]
 };
 
+// Photography categories
+export const photographyCategories: Record<string, PhotographyCategory> = {
+  'realestate': {
+    id: 'real-estate',
+    title: 'Real Estate Photography',
+    description: 'Professional real estate photography that sells properties faster',
+    bucketFolder: 'real-estate',
+    features: [
+      'HDR Photography',
+      'Virtual Staging',
+      'Aerial Photography',
+      'Floor Plans',
+      'Virtual Tours'
+    ],
+    priceRange: {
+      min: 150,
+      max: 500,
+      currency: 'USD'
+    }
+  },
+  'events': {
+    id: 'events',
+    title: 'Event Photography',
+    description: 'Capturing your special moments with style',
+    bucketFolder: 'events',
+    features: [
+      'Corporate Events',
+      'Weddings',
+      'Parties',
+      'Conferences',
+      'Live Coverage'
+    ],
+    priceRange: {
+      min: 200,
+      max: 1000,
+      currency: 'USD'
+    }
+  },
+  'family': {
+    id: 'family',
+    title: 'Family Photography',
+    description: 'Preserving precious family moments',
+    bucketFolder: 'family',
+    features: [
+      'Family Portraits',
+      'Children Photography',
+      'Generational Photos',
+      'Holiday Sessions',
+      'Location Shoots'
+    ],
+    priceRange: {
+      min: 175,
+      max: 600,
+      currency: 'USD'
+    }
+  },
+  'sports': {
+    id: 'sports',
+    title: 'Sports Photography',
+    description: 'Dynamic sports photography that captures the action',
+    bucketFolder: 'sports',
+    features: [
+      'Action Shots',
+      'Team Photos',
+      'Individual Portraits',
+      'Tournament Coverage',
+      'Sports Events'
+    ],
+    priceRange: {
+      min: 150,
+      max: 800,
+      currency: 'USD'
+    }
+  }
+};
+
+// Helper function to get category from domain
+export function getCategoryFromDomain(domain: string): string {
+  console.log('getCategoryFromDomain - Input domain:', domain);
+  
+  // Remove port number first
+  const domainWithoutPort = domain.split(':')[0];
+  
+  // Remove common TLDs and www
+  const cleanDomain = domainWithoutPort
+    .replace(/\.(com|net|org|local|localhost|vercel\.app)$/i, '')
+    .replace(/^www\./i, '')
+    .toLowerCase();
+    
+  console.log('getCategoryFromDomain - Clean domain:', cleanDomain);
+
+  // Extract category from domain (e.g., "newnanrealestatephotography" -> "real-estate")
+  const categoryMatches = cleanDomain.match(/newnan(.+?)photography/);
+  console.log('getCategoryFromDomain - Category matches:', categoryMatches);
+  
+  if (categoryMatches && categoryMatches[1]) {
+    const extractedCategory = categoryMatches[1].toLowerCase().replace(/[^a-z-]/g, '-');
+    console.log('getCategoryFromDomain - Extracted category:', extractedCategory);
+    const finalCategory = photographyCategories[extractedCategory] ? extractedCategory : 'default';
+    console.log('getCategoryFromDomain - Final category:', finalCategory);
+    return finalCategory;
+  }
+
+  return 'default';
+}
+
 // Default configuration
 const defaultConfig: SiteConfig = {
   text: {
@@ -337,7 +387,11 @@ const defaultConfig: SiteConfig = {
       { name: "Client Name 2", comment: loremText.medium }
     ],
     contactText: loremText.medium,
-    footerText: loremText.medium
+    footerText: loremText.medium,
+    hero: {
+      heading: "Professional Photography Services in Newnan",
+      subtext: "Flexible scheduling. Local expertise. A friendly, professional experience every time."
+    }
   },
   images: images,
   theme: {
@@ -470,7 +524,8 @@ const defaultConfig: SiteConfig = {
     darkMode: false,
     newsletter: true,
     clientProofing: true
-  }
+  },
+  photographyCategory: photographyCategories['realestate'] // Default to real estate if no match
 };
 
 // Version-specific configurations
@@ -484,15 +539,41 @@ export const siteVersions: Record<string, SiteConfig> = {
       description: "We capture the beauty of properties with precision and style.",
       buttonText: "Book a Real Estate Session",
       aboutTitle: "About Our Real Estate Photography",
-      servicesTitle: "Our Real Estate Services"
+      servicesTitle: "Our Real Estate Services",
+      hero: {
+        heading: "Professional Photos for Newnan's Top Agents",
+        subtext: "Flexible scheduling. Local expertise. A friendly, professional experience every time."
+      }
     },
-    images: themes.architecture.images,
+    photographyCategory: photographyCategories['realestate'],
     theme: {
       ...defaultConfig.theme,
       primaryColor: "#2D3748"
     }
   },
   
+  // Events Photography Version
+  "newnaneventphotography": {
+    ...defaultConfig,
+    text: {
+      ...defaultConfig.text,
+      heading: "Welcome to Event Photography",
+      description: "Capturing the moments that matter.",
+      buttonText: "Book an Event",
+      aboutTitle: "About Our Event Photography",
+      servicesTitle: "Our Event Services",
+      hero: {
+        heading: "Capturing Newnan's Special Moments",
+        subtext: "From corporate events to weddings, we capture the moments that matter most."
+      }
+    },
+    photographyCategory: photographyCategories['events'],
+    theme: {
+      ...defaultConfig.theme,
+      primaryColor: "#4A5568"
+    }
+  },
+
   // Family Photography Version
   "newnanfamilyphotography": {
     ...defaultConfig,
@@ -502,30 +583,38 @@ export const siteVersions: Record<string, SiteConfig> = {
       description: "Cherish your family moments forever.",
       buttonText: "Book a Family Session",
       aboutTitle: "About Our Family Photography",
-      servicesTitle: "Our Family Photo Services"
+      servicesTitle: "Our Family Photo Services",
+      hero: {
+        heading: "Creating Timeless Family Memories",
+        subtext: "Natural, authentic family photography that captures your family's unique story."
+      }
     },
-    images: themes.family.images,
+    photographyCategory: photographyCategories['family'],
     theme: {
       ...defaultConfig.theme,
       primaryColor: "#68A1DC"
     }
   },
-  
-  // Wedding Photography Version
-  "newnanweddingphotography": {
+
+  // Sports Photography Version
+  "newnansportsphotography": {
     ...defaultConfig,
     text: {
       ...defaultConfig.text,
-      heading: "Welcome to Wedding Photography",
-      description: "We tell your love story through stunning images.",
-      buttonText: "Book a Wedding Session",
-      aboutTitle: "About Our Wedding Photography",
-      servicesTitle: "Our Wedding Services"
+      heading: "Welcome to Sports Photography",
+      description: "Capturing the action and emotion of sports.",
+      buttonText: "Book Sports Coverage",
+      aboutTitle: "About Our Sports Photography",
+      servicesTitle: "Our Sports Services",
+      hero: {
+        heading: "Capturing the Action in Newnan Sports",
+        subtext: "Dynamic sports photography that brings the intensity of the game to life."
+      }
     },
-    images: themes.romantic.images,
+    photographyCategory: photographyCategories['sports'],
     theme: {
       ...defaultConfig.theme,
-      primaryColor: "#9F7AEA"
+      primaryColor: "#E53E3E"
     }
   },
   
@@ -534,7 +623,8 @@ export const siteVersions: Record<string, SiteConfig> = {
 };
 
 // Function to get configuration based on domain or version ID
-export function getConfig(versionId: string): SiteConfig {
-  return siteVersions[versionId] || siteVersions.default;
+export function getConfig(domain: string): SiteConfig {
+  const cleanDomain = domain.toLowerCase();
+  return siteVersions[cleanDomain] || siteVersions.default;
 }
   

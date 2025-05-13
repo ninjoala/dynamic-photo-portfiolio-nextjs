@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { fetchImageData } from '../../utils/fetchImageData';
@@ -12,7 +12,11 @@ interface GalleryImage {
   thumbnailUrl: string;
 }
 
-export default function VirtualGallery() {
+interface VirtualGalleryProps {
+  mode: string;
+}
+
+export default function VirtualGallery({ mode }: VirtualGalleryProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,19 +26,47 @@ export default function VirtualGallery() {
   const [columns, setColumns] = useState(3);
 
   // Load images from images.json
-  const loadImages = async () => {
+  const loadImages = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const data = await fetchImageData();
       
-      // Duplicate the images 1000 times
+      console.log('==== DEBUG: Image Loading ====');
+      console.log('Current Mode:', mode);
+      console.log('Raw data from images.json:', data);
+      console.log('All available images:', data.images.map(img => ({
+        name: img.name,
+        url: img.url
+      })));
+      
+      // Filter images based on mode
+      const filteredImages = data.images.filter((img: GalleryImage) => {
+        if (mode === 'default') return true;
+        
+        // Convert mode to match the folder structure format
+        const folderName = mode === 'realestate' ? 'real-estate' : mode;
+        const matches = img.name.startsWith(`${folderName}/`);
+        console.log(`Filtering: Image ${img.name} against folder "${folderName}" -> matches:`, matches);
+        return matches;
+      });
+      
+      console.log('Filtered images before duplication:', filteredImages.map(img => ({
+        name: img.name,
+        url: img.url
+      })));
+      
+      // Duplicate the filtered images 1000 times
       const duplicatedImages = Array.from({ length: 1000 }, (_, i) => 
-        data.images.map((img: GalleryImage) => ({
+        filteredImages.map((img: GalleryImage) => ({
           ...img,
           key: `${img.key}_${i}` // Ensure unique keys
         }))
       ).flat();
+      
+      console.log('Final image count being set to state:', duplicatedImages.length);
+      console.log('Sample of first few images being rendered:', duplicatedImages.slice(0, 3));
+      console.log('==== END DEBUG ====');
       
       setImages(duplicatedImages);
     } catch (err) {
@@ -43,11 +75,11 @@ export default function VirtualGallery() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [mode]);
 
   useEffect(() => {
     loadImages();
-  }, []);
+  }, [loadImages]); // Now correctly depends on loadImages
   
   useEffect(() => {
     const updateColumns = () => {
