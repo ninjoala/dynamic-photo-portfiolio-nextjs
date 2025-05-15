@@ -29,7 +29,7 @@ interface ImageData {
   category: string;
 }
 
-async function generateImageDataForCategory(category: string, bucketFolder: string) {
+async function generateImageDataForCategory(category: string, bucketFolder: string) : Promise<ImageData> {
   try {
     // List all objects in the bucket folder
     const command = new ListObjectsV2Command({
@@ -41,7 +41,7 @@ async function generateImageDataForCategory(category: string, bucketFolder: stri
     
     if (!response.Contents) {
       console.warn(`No contents found in bucket folder: ${bucketFolder}`);
-      return;
+      return { images: [], lastUpdated: new Date().toISOString(), category };
     }
 
     // Generate URLs for each image
@@ -77,17 +77,39 @@ async function generateImageDataForCategory(category: string, bucketFolder: stri
     fs.writeFileSync(outputPath, JSON.stringify(imageData, null, 2));
 
     console.log(`Generated image data for ${images.length} images in category: ${category}`);
+    return imageData;
   } catch (error) {
     console.error(`Failed to generate image data for category ${category}:`, error);
+    return { images: [], lastUpdated: new Date().toISOString(), category };
   }
 }
 
 async function generateAllImageData() {
   try {
-    // Generate data for each photography category
+    // Generate data for each photography category and collect all images
+    const allImages: Array<{
+      key: string;
+      name: string;
+      url: string;
+      thumbnailUrl: string;
+    }> = [];
     for (const [categoryId, category] of Object.entries(photographyCategories)) {
-      await generateImageDataForCategory(categoryId, category.bucketFolder);
+      const data = await generateImageDataForCategory(categoryId, category.bucketFolder);
+      if (data && data.images) {
+        allImages.push(...data.images);
+      }
     }
+    // Write a default combined image list for fallback
+    const defaultData = {
+      images: allImages,
+      lastUpdated: new Date().toISOString()
+    };
+    const outputDir = path.join(process.cwd(), 'public/data');
+    fs.writeFileSync(
+      path.join(outputDir, 'images.json'),
+      JSON.stringify(defaultData, null, 2)
+    );
+    console.log(`Generated default image data with ${allImages.length} images.`);
   } catch (error) {
     console.error('Failed to generate all image data:', error);
     process.exit(1);
