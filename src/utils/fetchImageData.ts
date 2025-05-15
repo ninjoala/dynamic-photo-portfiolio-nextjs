@@ -1,9 +1,10 @@
 import { ImageData } from '../types/images';
 
-export async function fetchImageData(): Promise<ImageData> {
+export async function fetchImageData(mode: string): Promise<ImageData> {
   // Add timestamp to bust Turbopack's cache
   const timestamp = Date.now();
-  const response = await fetch(`/data/images.json?t=${timestamp}`, {
+  const fileName = mode === 'default' ? 'images.json' : `images-${mode}.json`;
+  const response = await fetch(`/data/${fileName}?t=${timestamp}`, {
     cache: 'no-store',
     next: { revalidate: 0 }
   });

@@ -30,7 +30,7 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchImageData();
+      const data = await fetchImageData(mode);
       
       console.log('==== DEBUG: Image Loading ====');
       console.log('Current Mode:', mode);
