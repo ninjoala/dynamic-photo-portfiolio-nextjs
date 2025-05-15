@@ -30,22 +30,32 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchImageData(mode);
+      // Try fetching mode-specific data, fallback to default if not found
+      let data;
+      let effectiveMode = mode;
+      try {
+        data = await fetchImageData(mode);
+      } catch (err) {
+        console.warn(`Failed to load images for mode "${mode}", falling back to default`, err);
+        data = await fetchImageData('default');
+        effectiveMode = 'default';
+      }
       
       console.log('==== DEBUG: Image Loading ====');
-      console.log('Current Mode:', mode);
+      console.log('Requested Mode:', mode);
+      console.log('Effective Mode:', effectiveMode);
       console.log('Raw data from images.json:', data);
       console.log('All available images:', data.images.map(img => ({
         name: img.name,
         url: img.url
       })));
       
-      // Filter images based on mode
+      // Filter images based on effective mode
       const filteredImages = data.images.filter((img: GalleryImage) => {
-        if (mode === 'default') return true;
+        if (effectiveMode === 'default') return true;
         
-        // Convert mode to match the folder structure format
-        const folderName = mode === 'realestate' ? 'real-estate' : mode;
+        // Convert effective mode to match folder structure
+        const folderName = effectiveMode === 'realestate' ? 'real-estate' : effectiveMode;
         const matches = img.name.startsWith(`${folderName}/`);
         console.log(`Filtering: Image ${img.name} against folder "${folderName}" -> matches:`, matches);
         return matches;
