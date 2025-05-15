@@ -8,7 +8,7 @@ export default function ServicesPage() {
       deliverables: "10-15 edited digital photos",
     },
     {
-      title: "Wedding Photography",
+      title: "Wedding Photography", 
       description: "Comprehensive wedding day coverage including ceremony, reception, formal portraits, and candid moments. Multiple camera angles and professional lighting.",
       price: "Starting at $2,000",
       duration: "8-10 hours",
