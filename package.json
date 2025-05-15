@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "npm run generate-image-data && next dev",
     "build": "npm run generate-image-data && next build",
-    "build:production": "next build",
+    "build:production": "npm run generate-image-data && next build",
     "start": "next start",
     "lint": "next lint",
     "generate-image-data": "tsx scripts/generate-image-data.ts"
