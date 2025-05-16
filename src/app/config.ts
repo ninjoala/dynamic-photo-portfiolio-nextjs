@@ -351,6 +351,12 @@ export function getCategoryFromDomain(domain: string): string {
     
   console.log('getCategoryFromDomain - Clean domain:', cleanDomain);
 
+  // If we're on nickdobosmedia.com, use the realestate category
+  if (cleanDomain === 'nickdobosmedia') {
+    console.log('getCategoryFromDomain - Mapping nickdobosmedia to realestate');
+    return 'realestate';
+  }
+
   // Extract category from domain (e.g., "newnanrealestatephotography" -> "real-estate")
   const categoryMatches = cleanDomain.match(/newnan(.+?)photography/);
   console.log('getCategoryFromDomain - Category matches:', categoryMatches);
