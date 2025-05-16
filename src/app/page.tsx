@@ -3,6 +3,7 @@ import { siteVersions } from "./config";
 import Image from "next/image";
 import Link from 'next/link';
 import { createImgixUrl } from '../utils/imgix';
+import { getFeaturedWorkUrls } from '../utils/featuredWork';
 
 // Helper function to parse domain
 function parseDomain(hostname: string): string {
@@ -44,6 +45,12 @@ export default async function HomePage({
     ? parsedDomain 
     : 'default';
   const config = siteVersions[configKey];
+
+  // Dynamically load featured-work from S3 via Imgix URLs
+  const featuredImages = await getFeaturedWorkUrls(
+    config.photographyCategory.bucketFolder,
+    3
+  );
 
   return (
     <main className="min-h-screen">
@@ -90,48 +97,23 @@ export default async function HomePage({
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Featured Work</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="group relative aspect-square overflow-hidden rounded-lg">
-              <Image
-                src="https://images.unsplash.com/photo-1511895426328-dc8714191300"
-                alt="Wedding photography"
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-0 p-6 text-white">
-                  <h3 className="text-xl font-semibold">Weddings</h3>
-                  <p className="text-sm">Capturing your special day</p>
+            {featuredImages.map((src, idx) => (
+              <div key={idx} className="group relative aspect-square overflow-hidden rounded-lg">
+                <Image
+                  src={src}
+                  alt={`Featured Work ${idx + 1}`}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  priority={idx < 2}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-0 p-6 text-white">
+                    <h3 className="text-xl font-semibold">{config.photographyCategory.title}</h3>
+                    <p className="text-sm">Featured Work</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="group relative aspect-square overflow-hidden rounded-lg">
-              <Image
-                src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e"
-                alt="Portrait photography"
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-0 p-6 text-white">
-                  <h3 className="text-xl font-semibold">Portraits</h3>
-                  <p className="text-sm">Professional headshots and portraits</p>
-                </div>
-              </div>
-            </div>
-            <div className="group relative aspect-square overflow-hidden rounded-lg">
-              <Image
-                src="https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-                alt="Landscape photography"
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-0 p-6 text-white">
-                  <h3 className="text-xl font-semibold">Landscapes</h3>
-                  <p className="text-sm">Nature in its finest moments</p>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

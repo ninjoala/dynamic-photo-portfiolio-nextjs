@@ -50,15 +50,17 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
         url: img.url
       })));
       
-      // Filter images based on effective mode
+      // Filter images to only those in the root of the category folder (no nested subfolders)
       const filteredImages = data.images.filter((img: GalleryImage) => {
         if (effectiveMode === 'default') return true;
-        
-        // Convert effective mode to match folder structure
+        // Convert effective mode to match bucket folder structure
         const folderName = effectiveMode === 'realestate' ? 'real-estate' : effectiveMode;
-        const matches = img.name.startsWith(`${folderName}/`);
-        console.log(`Filtering: Image ${img.name} against folder "${folderName}" -> matches:`, matches);
-        return matches;
+        if (!img.name.startsWith(`${folderName}/`)) return false;
+        // Exclude nested subfolders: ensure only one slash in the path
+        const pathAfter = img.name.slice(folderName.length + 1);
+        const isRootLevel = !pathAfter.includes('/');
+        console.log(`Filtering: Image ${img.name} in "${folderName}" root-level:`, isRootLevel);
+        return isRootLevel;
       });
       
       console.log('Filtered images before duplication:', filteredImages.map(img => ({
