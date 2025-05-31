@@ -31,33 +31,33 @@ export default function ServicesPage() {
   ];
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-background text-foreground">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-light mb-4">Photography Services</h1>
-          <p className="text-xl text-gray-600">Professional photography services tailored to your needs</p>
+          <p className="text-xl text-gray-600 dark:text-gray-400">Professional photography services tailored to your needs</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
           {services.map((service, index) => (
             <div 
               key={index}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+              className="bg-white dark:bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
             >
               <div className="p-8">
-                <h3 className="text-2xl font-semibold mb-4">{service.title}</h3>
+                <h3 className="text-2xl font-semibold mb-4 text-gray-900">{service.title}</h3>
                 <p className="text-gray-600 mb-6">{service.description}</p>
                 <div className="space-y-3">
                   <div className="flex items-center">
-                    <span className="font-medium w-32">Price:</span>
+                    <span className="font-medium w-32 text-gray-900">Price:</span>
                     <span className="text-gray-600">{service.price}</span>
                   </div>
                   <div className="flex items-center">
-                    <span className="font-medium w-32">Duration:</span>
+                    <span className="font-medium w-32 text-gray-900">Duration:</span>
                     <span className="text-gray-600">{service.duration}</span>
                   </div>
                   <div className="flex items-center">
-                    <span className="font-medium w-32">Deliverables:</span>
+                    <span className="font-medium w-32 text-gray-900">Deliverables:</span>
                     <span className="text-gray-600">{service.deliverables}</span>
                   </div>
                 </div>
@@ -71,7 +71,7 @@ export default function ServicesPage() {
 
         <div className="mt-16 text-center">
           <h2 className="text-2xl font-light mb-4">Custom Packages Available</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Need something specific? Contact us to discuss custom photography packages 
             tailored to your unique requirements. We&apos;re happy to create a personalized 
             solution that meets your needs and budget.

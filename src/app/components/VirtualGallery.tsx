@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { fetchImageData } from '../../utils/fetchImageData';
@@ -17,7 +17,6 @@ interface VirtualGalleryProps {
 }
 
 export default function VirtualGallery({ mode }: VirtualGalleryProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +35,7 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
       try {
         data = await fetchImageData(mode);
       } catch (err) {
-        console.warn(`Failed to load images for mode "${mode}", falling back to default`, err);
+        console.warn(`Failed to load images for mode "${mode}", falling back to default if not found`, err);
         data = await fetchImageData('default');
         effectiveMode = 'default';
       }
@@ -112,9 +111,9 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
   
   const virtualizer = useVirtualizer({
     count: rows,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 300, // Estimate row height
-    overscan: 5, // Number of rows to render outside of the visible area
+    getScrollElement: () => document.scrollingElement,
+    estimateSize: () => 300,
+    overscan: 5,
   });
 
   if (loading) {
@@ -148,57 +147,49 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
   }[columns];
 
   return (
-    <div 
-      ref={parentRef}
-      className="h-[calc(100vh-8rem)] overflow-auto"
+    <div
+      className="relative w-full"
       style={{
+        height: `${virtualizer.getTotalSize()}px`,
         contain: 'strict',
       }}
     >
-      <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          const startIndex = virtualRow.index * columns;
-          const rowImages = images.slice(startIndex, startIndex + columns);
+      {virtualizer.getVirtualItems().map((virtualRow) => {
+        const startIndex = virtualRow.index * columns;
+        const rowImages = images.slice(startIndex, startIndex + columns);
 
-          return (
-            <div
-              key={virtualRow.key}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '300px',
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-              className={`grid ${gridColsClass} gap-4 px-4`}
-            >
-              {rowImages.map((image) => (
-                <div
-                  key={image.key}
-                  className="relative aspect-square overflow-hidden rounded-lg bg-gray-100"
-                >
-                  <Image
-                    src={image.thumbnailUrl}
-                    alt={`Gallery image ${image.name}`}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover hover:scale-105 transition-transform duration-300"
-                    priority={virtualRow.index < 2} // Prioritize loading first 2 rows
-                    quality={75}
-                  />
-                </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
+        return (
+          <div
+            key={virtualRow.key}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '300px',
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+            className={`grid ${gridColsClass} gap-6`}
+          >
+            {rowImages.map((image) => (
+              <div
+                key={image.key}
+                className="relative aspect-square overflow-hidden rounded-lg bg-gray-100"
+              >
+                <Image
+                  src={image.thumbnailUrl}
+                  alt={`Gallery image ${image.name}`}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                  priority={virtualRow.index < 2} // Prioritize loading first 2 rows
+                  quality={75}
+                />
+              </div>
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 } 

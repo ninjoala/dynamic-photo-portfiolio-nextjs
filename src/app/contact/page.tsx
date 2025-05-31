@@ -60,17 +60,17 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-background text-foreground">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-light mb-4">Get in Touch</h1>
-          <p className="text-xl text-gray-600">Let&apos;s discuss your photography needs</p>
+          <p className="text-xl text-gray-600 dark:text-gray-400">Let&apos;s discuss your photography needs</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Form */}
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-light mb-6">Send a Message</h2>
+          <div className="bg-white dark:bg-white rounded-lg shadow-lg p-8">
+            <h2 className="text-2xl font-light mb-6 text-gray-900">Send a Message</h2>
             
             {status === 'success' && (
               <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
@@ -86,7 +86,7 @@ export default function ContactPage() {
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-1">
                   Name
                 </label>
                 <input
@@ -95,13 +95,13 @@ export default function ContactPage() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black text-gray-900"
                   required
                 />
               </div>
               
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-1">
                   Email
                 </label>
                 <input
@@ -110,13 +110,13 @@ export default function ContactPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black text-gray-900"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-900 mb-1">
                   Subject
                 </label>
                 <input
@@ -125,13 +125,13 @@ export default function ContactPage() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black text-gray-900"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="message" className="block text-sm font-medium text-gray-900 mb-1">
                   Message
                 </label>
                 <textarea
@@ -140,7 +140,7 @@ export default function ContactPage() {
                   value={formData.message}
                   onChange={handleChange}
                   rows={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black text-gray-900"
                   required
                 ></textarea>
               </div>
@@ -157,42 +157,40 @@ export default function ContactPage() {
 
           {/* Contact Information */}
           <div className="space-y-8">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-light mb-6">Contact Information</h2>
+            <div className="bg-white dark:bg-white rounded-lg shadow-lg p-8">
+              <h2 className="text-2xl font-light mb-6 text-gray-900">Contact Information</h2>
               <div className="space-y-4">
                 <div className="flex items-center space-x-4">
                   <FaPhone className="text-xl text-gray-600" />
                   <div>
-                    <p className="font-medium">Phone</p>
+                    <p className="font-medium text-gray-900">Phone</p>
                     <p className="text-gray-600">+1 (678) 850-6600</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <FaEnvelope className="text-xl text-gray-600" />
                   <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-gray-600">nick@nickdobosmedia.com
-                    </p>
+                    <p className="font-medium text-gray-900">Email</p>
+                    <p className="text-gray-600">nick@nickdobosmedia.com</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-light mb-6">Follow Us</h2>
+            <div className="bg-white dark:bg-white rounded-lg shadow-lg p-8">
+              <h2 className="text-2xl font-light mb-6 text-gray-900">Follow Us</h2>
               <div className="flex space-x-6">
-                <a href="#" className="text-gray-600 hover:text-black transition-colors duration-300">
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
                   <FaInstagram className="text-3xl" />
                 </a>
-                <a href="#" className="text-gray-600 hover:text-black transition-colors duration-300">
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
                   <FaFacebook className="text-3xl" />
                 </a>
-                <a href="#" className="text-gray-600 hover:text-black transition-colors duration-300">
+                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
                   <FaTwitter className="text-3xl" />
                 </a>
               </div>
             </div>
-
           </div>
         </div>
       </div>

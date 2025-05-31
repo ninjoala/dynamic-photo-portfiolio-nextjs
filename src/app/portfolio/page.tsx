@@ -14,11 +14,13 @@ export default async function PortfolioPage() {
   console.log('Portfolio Page - Current Mode:', currentMode);
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">My Portfolio</h1>
+    <section className="bg-background text-foreground">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-center mb-12">
+          My Portfolio
+        </h1>
         <VirtualGallery mode={currentMode} />
       </div>
-    </main>
+    </section>
   );
 } 
