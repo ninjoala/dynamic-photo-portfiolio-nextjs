@@ -94,11 +94,20 @@ async function generateAllImageData() {
       thumbnailUrl: string;
     }> = [];
     for (const [categoryId, category] of Object.entries(photographyCategories)) {
+      // Skip shared category for the main portfolio images
+      if (categoryId === 'shared') continue;
+      
       const data = await generateImageDataForCategory(categoryId, category.bucketFolder);
       if (data && data.images) {
         allImages.push(...data.images);
       }
     }
+    
+    // Generate shared images separately
+    if (photographyCategories.shared) {
+      await generateImageDataForCategory('shared', photographyCategories.shared.bucketFolder);
+    }
+    
     // Write a default combined image list for fallback
     const defaultData = {
       images: allImages,

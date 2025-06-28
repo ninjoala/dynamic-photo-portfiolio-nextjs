@@ -333,6 +333,13 @@ export const photographyCategories: Record<string, PhotographyCategory> = {
       max: 800,
       currency: 'USD'
     }
+  },
+  'shared': {
+    id: 'shared',
+    title: 'Shared Assets',
+    description: 'Common images used across all site versions',
+    bucketFolder: 'shared',
+    features: []
   }
 };
 
