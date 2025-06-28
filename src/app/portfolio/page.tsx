@@ -1,8 +1,8 @@
-import VirtualGallery from '../components/VirtualGallery';
+import PortfolioPage from '../components/PortfolioPage';
 import { headers } from 'next/headers';
 import { getCategoryFromDomain } from '../config';
 
-export default async function PortfolioPage() {
+export default async function Portfolio() {
   // Get the hostname from headers (server-side)
   const headersList = await headers();
   const host = headersList.get('host') || 'localhost';
@@ -19,7 +19,7 @@ export default async function PortfolioPage() {
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-center mb-12">
           My Portfolio
         </h1>
-        <VirtualGallery mode={currentMode} />
+        <PortfolioPage mode={currentMode} />
       </div>
     </section>
   );
