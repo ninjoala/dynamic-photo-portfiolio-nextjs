@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaPhone, FaEnvelope, FaInstagram, FaFacebook, FaTwitter } from 'react-icons/fa';
+import { FaPhone, FaEnvelope, FaInstagram, FaFacebook, FaTiktok } from 'react-icons/fa';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -180,14 +180,14 @@ export default function ContactPage() {
             <div className="bg-white dark:bg-white rounded-lg shadow-lg p-8">
               <h2 className="text-2xl font-light mb-6 text-gray-900">Follow Us</h2>
               <div className="flex space-x-6">
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
+                <a href="https://www.instagram.com/nickdobos_photo/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
                   <FaInstagram className="text-3xl" />
                 </a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
+                <a href="https://www.facebook.com/p/Nicholas-Dobos-Photography-61550320203022/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
                   <FaFacebook className="text-3xl" />
                 </a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
-                  <FaTwitter className="text-3xl" />
+                <a href="https://www.tiktok.com/@nickdobosphotography" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
+                  <FaTiktok className="text-3xl" />
                 </a>
               </div>
             </div>
