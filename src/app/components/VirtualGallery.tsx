@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { fetchImageData } from '../../utils/fetchImageData';
+import ImageModal from './ImageModal';
 
 interface GalleryImage {
   key: string;
@@ -20,6 +21,10 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImageIndex, setModalImageIndex] = useState(0);
 
   // Calculate the number of columns based on viewport width
   const [columns, setColumns] = useState(3);
@@ -62,24 +67,16 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
         return isRootLevel;
       });
       
-      console.log('Filtered images before duplication:', filteredImages.map(img => ({
+      console.log('Final filtered images:', filteredImages.map(img => ({
         name: img.name,
         url: img.url
       })));
       
-      // Duplicate the filtered images 1000 times
-      const duplicatedImages = Array.from({ length: 1000 }, (_, i) => 
-        filteredImages.map((img: GalleryImage) => ({
-          ...img,
-          key: `${img.key}_${i}` // Ensure unique keys
-        }))
-      ).flat();
-      
-      console.log('Final image count being set to state:', duplicatedImages.length);
-      console.log('Sample of first few images being rendered:', duplicatedImages.slice(0, 3));
+      console.log('Final image count being set to state:', filteredImages.length);
+      console.log('Sample of first few images being rendered:', filteredImages.slice(0, 3));
       console.log('==== END DEBUG ====');
       
-      setImages(duplicatedImages);
+      setImages(filteredImages);
     } catch (err) {
       setError('Failed to load images. Please try again.');
       console.error('Error loading images:', err);
@@ -104,6 +101,16 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
     updateColumns();
     window.addEventListener('resize', updateColumns);
     return () => window.removeEventListener('resize', updateColumns);
+  }, []);
+
+  // Modal handlers
+  const openModal = useCallback((index: number) => {
+    setModalImageIndex(index);
+    setIsModalOpen(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
   }, []);
 
   // Calculate rows for virtualization
@@ -147,49 +154,71 @@ export default function VirtualGallery({ mode }: VirtualGalleryProps) {
   }[columns];
 
   return (
-    <div
-      className="relative w-full"
-      style={{
-        height: `${virtualizer.getTotalSize()}px`,
-        contain: 'strict',
-      }}
-    >
-      {virtualizer.getVirtualItems().map((virtualRow) => {
-        const startIndex = virtualRow.index * columns;
-        const rowImages = images.slice(startIndex, startIndex + columns);
+    <>
+      <div
+        className="relative w-full"
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          contain: 'strict',
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const startIndex = virtualRow.index * columns;
+          const rowImages = images.slice(startIndex, startIndex + columns);
 
-        return (
-          <div
-            key={virtualRow.key}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '300px',
-              transform: `translateY(${virtualRow.start}px)`,
-            }}
-            className={`grid ${gridColsClass} gap-6`}
-          >
-            {rowImages.map((image) => (
-              <div
-                key={image.key}
-                className="relative aspect-square overflow-hidden rounded-lg bg-gray-100"
-              >
-                <Image
-                  src={image.thumbnailUrl}
-                  alt={`Gallery image ${image.name}`}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="object-cover hover:scale-105 transition-transform duration-300"
-                  priority={virtualRow.index < 2} // Prioritize loading first 2 rows
-                  quality={75}
-                />
-              </div>
-            ))}
-          </div>
-        );
-      })}
-    </div>
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '300px',
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+              className={`grid ${gridColsClass} gap-6`}
+            >
+              {rowImages.map((image, imageIndex) => {
+                const globalIndex = startIndex + imageIndex;
+                return (
+                  <div
+                    key={image.key}
+                    className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 cursor-pointer group"
+                    onClick={() => openModal(globalIndex)}
+                  >
+                    <Image
+                      src={image.thumbnailUrl}
+                      alt={`Gallery image ${image.name}`}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      priority={virtualRow.index < 2} // Prioritize loading first 2 rows
+                      quality={75}
+                    />
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                      <div className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        images={images}
+        initialIndex={modalImageIndex}
+      />
+    </>
   );
 } 
