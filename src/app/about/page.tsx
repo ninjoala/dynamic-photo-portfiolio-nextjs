@@ -5,7 +5,7 @@ export default async function AboutPage() {
   const profileImageUrl = await getProfileImage();
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center light-gray-bg">
       <div className="container mx-auto px-4 py-16 max-w-4xl">
         <div className="grid md:grid-cols-2 gap-12 items-center">
         {/* Image Section */}

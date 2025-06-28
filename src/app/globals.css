@@ -58,3 +58,13 @@
     font-family: Arial, Helvetica, sans-serif;
   }
 }
+
+@layer components {
+  .light-gray-bg {
+    background-color: #f8f9fa;
+  }
+
+  .dark .light-gray-bg {
+    background-color: #1f2937;
+  }
+}

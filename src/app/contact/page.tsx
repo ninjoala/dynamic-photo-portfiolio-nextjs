@@ -60,8 +60,8 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-background text-foreground">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen flex items-center py-16 px-4 sm:px-6 lg:px-8 light-gray-bg text-foreground">
+      <div className="max-w-6xl mx-auto w-full">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-light mb-4">Get in Touch</h1>
           <p className="text-xl text-gray-600 dark:text-gray-400">Let&apos;s discuss your photography needs</p>
