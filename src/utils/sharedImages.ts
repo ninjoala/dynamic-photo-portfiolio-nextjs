@@ -1,4 +1,3 @@
-import { ImageData } from '../types/images';
 import fs from 'fs';
 import path from 'path';
 

@@ -36,7 +36,7 @@ export default async function AboutPage() {
               I was so excited to capture the journey of our family and the memories we would make together. 
               I started by taking photos of our family and pets, and then I quickly became obsessed with the art of photography.
               But, once I started taking photos of wildlife, I knew I had found my passion. I devoted to spending as much time as I could with a camera in my hands.
-              It is my personal belief that each genre of photography I tackle has a host of lessons to teach me about the art, and I'm dedicated to learn as much as I can.
+              It is my personal belief that each genre of photography I tackle has a host of lessons to teach me about the art, and I&apos;m dedicated to learn as much as I can.
             </p>
           </div>
         </div>
