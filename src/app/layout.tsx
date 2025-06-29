@@ -16,9 +16,30 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Nick Dobos Media",
-  description: "Nichedown Media Portfolio",
+  description: "Professional photography services based in Newnan, GA",
   icons: {
     icon: `/favicon.ico?t=${Date.now()}`,
+  },
+  openGraph: {
+    title: "Nick Dobos Media",
+    description: "Professional photography services based in Newnan, GA", 
+    url: "https://nickdobosmedia.com",
+    images: [
+      {
+        url: "https://wasabindmdemo.imgix.net/real-estate/featured-work/_DR62951-HDR.jpg?w=1200&h=630&fit=crop&auto=format",
+        width: 1200,
+        height: 630,
+        alt: "Nick Dobos Media - Professional Real Estate Photography",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nick Dobos Media",
+    description: "Professional photography services based in Newnan, GA",
+    images: ["https://wasabindmdemo.imgix.net/real-estate/featured-work/_DR62951-HDR.jpg?w=1200&h=630&fit=crop&auto=format"],
   },
 };
 
