@@ -4,6 +4,9 @@ import Image from "next/image";
 import Link from 'next/link';
 import { createImgixUrl } from '../utils/imgix';
 import { getFeaturedWorkUrls } from '../utils/featuredWork';
+import { generateHomeMetadata } from '../utils/seo';
+import StructuredData from './components/StructuredData';
+import { generateFeaturedWorkAltText, generateHeroAltText } from '../utils/altTextGenerator';
 
 // Helper function to parse domain
 function parseDomain(hostname: string): string {
@@ -28,6 +31,11 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+// Generate dynamic metadata for SEO
+export async function generateMetadata() {
+  return await generateHomeMetadata();
+}
+
 export default async function HomePage({
   searchParams,
 }: PageProps) {
@@ -45,6 +53,9 @@ export default async function HomePage({
     ? parsedDomain 
     : 'default';
   const config = siteVersions[configKey];
+  
+  // Determine the current category for alt text generation
+  const currentCategory = configKey === 'default' ? 'realestate' : configKey;
 
   // Dynamically load featured-work from S3 via Imgix URLs
   const featuredImages = await getFeaturedWorkUrls(
@@ -53,6 +64,8 @@ export default async function HomePage({
   );
 
   return (
+    <>
+      <StructuredData includeLocalBusiness={true} includeService={true} />
     <main className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-screen">
@@ -65,7 +78,7 @@ export default async function HomePage({
               fit: 'max',
               crop: 'focalpoint'
             })}
-            alt="Hero background"
+            alt={generateHeroAltText(currentCategory)}
             fill
             className="object-cover"
             priority
@@ -101,7 +114,7 @@ export default async function HomePage({
               <div key={idx} className="group relative aspect-square overflow-hidden rounded-lg">
                 <Image
                   src={src}
-                  alt={`Featured Work ${idx + 1}`}
+                  alt={generateFeaturedWorkAltText(currentCategory)}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                   priority={idx < 2}
@@ -130,8 +143,8 @@ export default async function HomePage({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Real Estate Photography</h3>
-              <p className="text-gray-600 dark:text-gray-300">Bright, crisp images that help homes stand out online and attract more buyers.</p>
+              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Real Estate Photography in Newnan, GA</h3>
+              <p className="text-gray-600 dark:text-gray-300">Professional real estate photography services in Newnan, Georgia. Our bright, crisp HDR images help homes stand out online and attract more buyers faster.</p>
             </div>
             <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
               <div className="h-12 w-12 mx-auto mb-4 bg-black text-white rounded-full flex items-center justify-center">
@@ -139,8 +152,8 @@ export default async function HomePage({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Agent Branding Sessions</h3>
-              <p className="text-gray-600 dark:text-gray-300">Professional portraits and lifestyle shots perfect for marketing, social media, and print.</p>
+              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Real Estate Agent Branding Photography</h3>
+              <p className="text-gray-600 dark:text-gray-300">Professional headshots and lifestyle photography for real estate agents in Newnan. Perfect for marketing materials, social media, and business cards.</p>
             </div>
             <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
               <div className="h-12 w-12 mx-auto mb-4 bg-black text-white rounded-full flex items-center justify-center">
@@ -158,8 +171,8 @@ export default async function HomePage({
       {/* Call to Action */}
       <section className="py-20 px-4 bg-foreground text-background">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Let&apos;s make your next listing shine.</h2>
-          <p className="text-xl mb-8">Reach out to schedule your shoot or ask about availability.</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Professional Real Estate Photography in Newnan, GA</h2>
+          <p className="text-xl mb-8">Ready to make your listings stand out? Contact Nick Dobos Media for professional real estate photography that sells homes faster in Newnan and surrounding areas.</p>
           <Link 
             href="/contact" 
             className="inline-block px-8 py-3 bg-background text-foreground rounded-full hover:bg-opacity-90 transition-all text-lg"
@@ -169,5 +182,6 @@ export default async function HomePage({
         </div>
       </section>
     </main>
+    </>
   );
 }

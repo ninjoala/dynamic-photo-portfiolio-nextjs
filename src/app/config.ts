@@ -501,27 +501,56 @@ const defaultConfig: SiteConfig = {
   faq: {
     categories: [
       {
-        title: "General",
+        title: "General Services & Booking",
         questions: [
-          { question: "What types of photography do you offer?", answer: "We offer a wide range of photography services including Real Estate, Family, and Wedding photography." },
-          { question: "Do you travel for shoots?", answer: "Yes, we are happy to travel for shoots. Please contact us for a quote." },
-          { question: "How long does it take to get my photos?", answer: "It typically takes 4-6 weeks to receive your edited photos." }
+          { question: "What types of photography do you offer?", answer: "I offer real estate photography, family portraits, event photography, sports photography, professional headshots, studio sessions, and mini sessions. If you can think it, I probably do it - please don't hesitate to reach out!" },
+          { question: "Do you travel for shoots?", answer: "Yes, I do travel for shoots on a case by case basis. Please contact me to discuss your specific location and needs." },
+          { question: "How long does it take to get my photos?", answer: "My standard turnaround time is 2 weeks, but we can discuss expediting if you need your photos sooner." },
+          { question: "How do I book a session?", answer: "Please use my contact form to reach out to me, and I will contact you back via your preferred method - email or phone." }
         ]
       },
       {
-        title: "Pricing",
+        title: "Scheduling & Availability",
         questions: [
-          { question: "Do you offer discounts for multiple services?", answer: "Yes, we offer discounts for booking multiple services." },
-          { question: "Do you offer payment plans?", answer: "Yes, we offer flexible payment plans. Please contact us for more information." },
-          { question: "Do you offer refunds?", answer: "Refunds are not offered, but we are happy to discuss any concerns." }
+          { question: "What is your availability?", answer: "For weekdays, I'm usually available in the evenings unless I have around 2 weeks notice for daytime shoots. Weekend availability varies." },
+          { question: "What happens if weather is bad for outdoor shoots?", answer: "Depending on the context of the shoot, we will reschedule if needed. Please note that deposit refunds will not be issued for rescheduling due to weather." }
         ]
       },
       {
-        title: "Services",
+        title: "Payment & Policies",
         questions: [
-          { question: "Do you offer photo editing services?", answer: "Yes, we offer photo editing services. Please contact us for more information." },
-          { question: "Do you offer prints and canvases?", answer: "Yes, we offer prints and canvases. Please contact us for more information." },
-          { question: "Do you offer digital downloads?", answer: "Yes, we offer digital downloads. Please contact us for more information." }
+          { question: "What are your payment terms?", answer: "I require a 50% deposit up front to secure your booking, with the remaining 50% due the day of the shoot." },
+          { question: "How long will my digital gallery be available?", answer: "I won't delete any digital galleries for a year minimum, but I reserve the right to take it down thereafter - always after delivery, though." }
+        ]
+      },
+      {
+        title: "Photo Delivery & Services",
+        questions: [
+          { question: "How do I receive my photos?", answer: "All photos are delivered through a digital gallery online where you can view, download, and share your images." },
+          { question: "How many photos will I receive?", answer: "This depends entirely on the package you choose - as few as 10 photos, as many as 50 or more." },
+          { question: "Do you provide raw/unedited photos?", answer: "I only provide edited photos. All images go through my professional editing process." },
+          { question: "Can I request specific edits or changes?", answer: "This depends on the extent of the edit - we can discuss specific requests during our consultation." },
+          { question: "Do you offer prints and canvases?", answer: "My basic packages include digital delivery only. Prints and canvases are available as add-on services." }
+        ]
+      },
+      {
+        title: "Equipment & Technical",
+        questions: [
+          { question: "What if your equipment fails during a shoot?", answer: "I have fallback equipment to prevent this, but in the case of disastrous circumstances, we can reschedule the shoot." },
+          { question: "Do you have backup equipment?", answer: "Yes, I carry two cameras with interchangeable lenses, multiple flashes, and many memory cards to ensure we never miss a shot." },
+          { question: "Do you provide props?", answer: "This is handled on a case by case basis. I can sometimes bring props, while other times (like for senior portraits) I might ask the client to bring some personal items." }
+        ]
+      },
+      {
+        title: "Service-Specific Questions",
+        questions: [
+          { question: "Do you work with real estate agents or homeowners?", answer: "I usually work with real estate agents, but I'm happy to work with homeowners directly if they're interested." },
+          { question: "Do you offer drone/aerial photography?", answer: "Not yet - I'm currently working on getting my drone license to offer this service." },
+          { question: "Do you photograph children?", answer: "I love photographing children! As the father of a young girl, I get a lot of practice doing so!" },
+          { question: "How long do you typically shoot for events?", answer: "For events, I shoot as long as needed to capture all the important moments." },
+          { question: "Are there any restrictions on what types of events you'll photograph?", answer: "No restrictions at the moment - please contact me if you have any questions about your specific event." },
+          { question: "How long are your typical sessions?", answer: "Most shoots are usually around an hour, though this can vary depending on the type of session and package chosen." },
+          { question: "Do you have a studio or shoot on-location only?", answer: "I do on-location shoots and also have a variety of studio options available depending on your needs." }
         ]
       }
     ]

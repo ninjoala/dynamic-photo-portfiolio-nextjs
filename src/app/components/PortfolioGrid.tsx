@@ -6,6 +6,7 @@ import { Card, CardContent } from '../../../components/ui/card';
 import { AspectRatio } from '../../../components/ui/aspect-ratio';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { fetchImageData } from '../../utils/fetchImageData';
+import { generateImageAltText } from '../../utils/altTextGenerator';
 
 interface GalleryImage {
   key: string;
@@ -136,11 +137,11 @@ export default function PortfolioGrid({ mode, onImageClick }: PortfolioGridProps
             <AspectRatio ratio={1}>
               <Image
                 src={image.thumbnailUrl}
-                alt={`Gallery image ${image.name}`}
+                alt={generateImageAltText(image.name, mode, index)}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 className={`object-cover transition-opacity duration-300 group-hover:scale-105 ${
-                  imageLoadingStates[image.key] ? 'opacity-0' : 'opacity-100'
+                  imageLoadingStates[image.key] ? 'opacity-30' : 'opacity-100'
                 }`}
                 onLoad={() => handleImageLoad(image.key)}
                 onError={() => handleImageLoad(image.key)}

@@ -71,6 +71,7 @@ export default function PortfolioPage({ mode }: PortfolioPageProps) {
         onClose={handleCarouselClose}
         images={images}
         initialIndex={selectedImageIndex}
+        mode={mode}
       />
     </>
   );

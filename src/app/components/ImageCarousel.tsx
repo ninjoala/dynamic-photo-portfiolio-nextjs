@@ -12,6 +12,7 @@ import {
   type CarouselApi 
 } from '../../../components/ui/carousel';
 import { createImgixUrl } from '../../utils/imgix';
+import { generateImageAltText } from '../../utils/altTextGenerator';
 
 interface GalleryImage {
   key: string;
@@ -25,6 +26,7 @@ interface ImageCarouselProps {
   onClose: () => void;
   images: GalleryImage[];
   initialIndex: number;
+  mode: string;
 }
 
 interface PreloadedImage {
@@ -33,7 +35,7 @@ interface PreloadedImage {
   element?: HTMLImageElement;
 }
 
-export default function ImageCarousel({ isOpen, onClose, images, initialIndex }: ImageCarouselProps) {
+export default function ImageCarousel({ isOpen, onClose, images, initialIndex, mode }: ImageCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(initialIndex);
   const [count, setCount] = useState(0);
@@ -238,7 +240,7 @@ export default function ImageCarousel({ isOpen, onClose, images, initialIndex }:
                         <Image
                           key={`${index}-${displayUrl}`}
                           src={displayUrl}
-                          alt={`Gallery image ${image.name}`}
+                          alt={generateImageAltText(image.name, mode, index)}
                           fill
                           className="object-contain"
                           onLoad={handleImageLoad}
