@@ -193,10 +193,7 @@ export default function ImageCarousel({ isOpen, onClose, images, initialIndex, m
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
       <div className="relative w-full h-full flex flex-col p-2 sm:p-4">
         {/* Header */}
-        <div className="flex items-center justify-between text-white mb-2 sm:mb-4 z-10">
-          <div className="text-sm">
-            {current + 1} of {count}
-          </div>
+        <div className="flex items-center justify-end text-white mb-2 sm:mb-4 z-10">
           <button
             onClick={onClose}
             className="text-white hover:text-gray-300 transition-colors p-2 rounded-full hover:bg-white/20"
@@ -259,6 +256,13 @@ export default function ImageCarousel({ isOpen, onClose, images, initialIndex, m
             <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 border-white/20 text-white hover:bg-black/40 hover:text-white" />
             <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 border-white/20 text-white hover:bg-black/40 hover:text-white" />
           </Carousel>
+        </div>
+
+        {/* Image counter - centered below photo */}
+        <div className="flex justify-center text-white mt-2 sm:mt-4 z-10">
+          <div className="text-sm">
+            {current + 1} of {count}
+          </div>
         </div>
       </div>
 
