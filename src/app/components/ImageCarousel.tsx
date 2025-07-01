@@ -191,9 +191,9 @@ export default function ImageCarousel({ isOpen, onClose, images, initialIndex, m
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-      <div className="relative w-full h-full max-w-7xl max-h-full flex flex-col p-4">
+      <div className="relative w-full h-full flex flex-col p-2 sm:p-4">
         {/* Header */}
-        <div className="flex items-center justify-between text-white mb-4 z-10">
+        <div className="flex items-center justify-between text-white mb-2 sm:mb-4 z-10">
           <div className="text-sm">
             {current + 1} of {count}
           </div>
@@ -212,7 +212,7 @@ export default function ImageCarousel({ isOpen, onClose, images, initialIndex, m
         <div className="flex-1 flex items-center justify-center">
           <Carousel 
             setApi={setApi}
-            className="w-full max-w-5xl"
+            className="w-full"
             opts={{
               align: "center",
               loop: true,
@@ -227,7 +227,7 @@ export default function ImageCarousel({ isOpen, onClose, images, initialIndex, m
 
                 return (
                   <CarouselItem key={image.key} className="flex items-center justify-center">
-                    <div className="relative w-full max-w-4xl max-h-[80vh]">
+                    <div className="relative w-full max-h-[85vh] sm:max-h-[90vh]">
                       {/* Loading indicator */}
                       {isLoading && isCurrentImage && (
                         <div className="absolute inset-0 flex items-center justify-center z-20">
