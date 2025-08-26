@@ -1,17 +1,13 @@
 import { S3Client, ListObjectsV2Command, _Object } from "@aws-sdk/client-s3";
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
 import { createImgixUrl } from '../src/utils/imgix';
 import { photographyCategories } from '../src/app/config';
-
-// Load environment variables from both files
-dotenv.config({ path: '.env' });
-dotenv.config({ path: '.env.local' });
 
 const s3Client = new S3Client({
   region: process.env.WASABI_REGION || 'us-east-1',
   endpoint: process.env.WASABI_ENDPOINT || 'https://s3.wasabisys.com',
+  forcePathStyle: true, // Use path-style URLs instead of virtual hosted-style
   credentials: {
     accessKeyId: process.env.WASABI_ACCESS_KEY_ID || '',
     secretAccessKey: process.env.WASABI_SECRET_ACCESS_KEY || ''

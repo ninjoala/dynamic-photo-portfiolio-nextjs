@@ -58,10 +58,17 @@ export default async function HomePage({
   const currentCategory = configKey === 'default' ? 'realestate' : configKey;
 
   // Dynamically load featured-work from S3 via Imgix URLs
-  const featuredImages = await getFeaturedWorkUrls(
-    config.photographyCategory.bucketFolder,
-    3
-  );
+  let featuredImages: string[] = [];
+  try {
+    featuredImages = await getFeaturedWorkUrls(
+      config.photographyCategory.bucketFolder,
+      3
+    );
+  } catch (error) {
+    console.error('Failed to fetch featured work from S3:', error);
+    // Fallback to empty array - page will still render
+    featuredImages = [];
+  }
 
   return (
     <>

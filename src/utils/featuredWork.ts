@@ -5,6 +5,7 @@ import { createImgixUrl } from './imgix';
 const s3Client = new S3Client({
   region: process.env.WASABI_REGION,
   endpoint: process.env.WASABI_ENDPOINT,
+  forcePathStyle: true, // Use path-style URLs instead of virtual hosted-style
   credentials: {
     accessKeyId: process.env.WASABI_ACCESS_KEY_ID || '',
     secretAccessKey: process.env.WASABI_SECRET_ACCESS_KEY || ''
