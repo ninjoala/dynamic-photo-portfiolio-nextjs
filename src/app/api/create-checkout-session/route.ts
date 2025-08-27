@@ -10,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
-    const { shirtId, size, quantity, email, name } = await request.json();
+    const { shirtId, size, quantity, email, name, phone } = await request.json();
 
     const [shirt] = await db
       .select()
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       .values({
         email,
         name,
+        phone,
         shirtId,
         size,
         quantity,

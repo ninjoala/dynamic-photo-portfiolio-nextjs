@@ -16,6 +16,7 @@ export const orders = pgTable('orders', {
   id: serial('id').primaryKey(),
   email: text('email').notNull(),
   name: text('name').notNull(),
+  phone: text('phone'),
   shirtId: integer('shirt_id').references(() => shirts.id).notNull(),
   size: text('size').notNull(),
   quantity: integer('quantity').notNull(),

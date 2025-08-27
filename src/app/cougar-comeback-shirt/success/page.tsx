@@ -83,7 +83,7 @@ export default function SuccessPage() {
           </h1>
           
           <p className="text-gray-600 mb-6">
-            Thank you for your preorder! We've sent a confirmation email with your order details.
+            Thank you for your preorder! A receipt has been sent to your email address.
           </p>
 
           {loading ? (

@@ -20,6 +20,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
   const [quantity, setQuantity] = useState(1);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -51,6 +52,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
           quantity,
           email,
           name,
+          phone,
         }),
       });
 
@@ -197,6 +199,19 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Size
                 </label>
                 <select
@@ -251,7 +266,8 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 </button>
 
                 <p className="text-sm text-gray-600 mt-4 text-center">
-                  You will be redirected to Stripe for secure payment processing
+                  You will be redirected to Stripe for secure payment processing.<br />
+                  A receipt will be emailed to you after payment.
                 </p>
               </div>
             </form>
