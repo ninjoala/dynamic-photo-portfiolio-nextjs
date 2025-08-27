@@ -100,32 +100,44 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
   const totalPrice = selectedShirt ? (parseFloat(selectedShirt.price) * quantity).toFixed(2) : '0.00';
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold text-center mb-12 text-gray-900">
-        Cougar Comeback Shirt Preorder
-      </h1>
-
-      {shirts.length === 0 ? (
-        <div className="text-center text-gray-600">
-          <p>No shirts available for preorder at this time.</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-60 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-64 h-64 bg-amber-400/20 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="relative max-w-7xl mx-auto px-4 py-12">
+        <div className="text-center mb-16 mt-12">
+          <h1 className="text-6xl font-bold text-white mb-4" style={{textShadow: '0 4px 8px rgba(0,0,0,0.8), 0 8px 16px rgba(0,0,0,0.4)'}}>
+            Cougar Comeback
+          </h1>
         </div>
-      ) : (
-        <div className="grid md:grid-cols-2 gap-12">
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Select Your Shirt</h2>
-              <div className="grid gap-4">
-                {shirts.map((shirt) => (
-                  <div
-                    key={shirt.id}
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                      selectedShirt?.id === shirt.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedShirt(shirt)}
-                  >
-                    <div className="flex items-start space-x-4">
+
+        {shirts.length === 0 ? (
+          <div className="text-center">
+            <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 p-8">
+              <p className="text-white/80 text-lg">No shirts available for preorder at this time.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-2 gap-12">
+            <div className="space-y-8">
+              <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
+                <h2 className="text-3xl font-bold text-white mb-6" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Select Your Shirt</h2>
+                <div className="grid gap-6">
+                  {shirts.map((shirt) => (
+                    <div
+                      key={shirt.id}
+                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all duration-300 ${
+                        selectedShirt?.id === shirt.id
+                          ? 'border-amber-400 bg-amber-500/10 shadow-xl scale-105'
+                          : 'border-white/30 bg-white/5 hover:border-amber-300/50 hover:bg-white/10'
+                      }`}
+                      onClick={() => setSelectedShirt(shirt)}
+                    >
+                      <div className="flex items-start space-x-4">
                       {shirt.images && shirt.images.length > 0 && (
                         <div className="relative w-24 h-24 flex-shrink-0">
                           <Image
@@ -137,11 +149,11 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                         </div>
                       )}
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{shirt.name}</h3>
+                        <h3 className="font-bold text-xl text-white drop-shadow-md">{shirt.name}</h3>
                         {shirt.description && (
-                          <p className="text-gray-600 text-sm mt-1">{shirt.description}</p>
+                          <p className="text-amber-100/80 text-sm mt-2 leading-relaxed">{shirt.description}</p>
                         )}
-                        <p className="text-xl font-bold text-blue-600 mt-2">
+                        <p className="text-2xl font-bold text-amber-400 mt-3 drop-shadow-lg">
                           ${shirt.price}
                         </p>
                       </div>
@@ -152,20 +164,20 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
             </div>
 
             {selectedShirt && selectedShirt.images && selectedShirt.images.length > 0 && (
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-xl font-semibold mb-4">Product Images</h3>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
+                <h3 className="text-3xl font-bold text-white mb-6" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Product Images</h3>
+                <div className="grid grid-cols-2 gap-6">
                   {selectedShirt.images.map((image, index) => (
-                    <div key={index} className="space-y-2">
-                      <p className="text-sm font-medium text-gray-700 text-center">
+                    <div key={index} className="space-y-3">
+                      <p className="text-lg font-semibold text-white text-center drop-shadow-md">
                         {index === 0 ? 'Front' : 'Back'}
                       </p>
-                      <div className="relative aspect-square">
+                      <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/30 shadow-2xl hover:scale-105 transition-transform duration-300">
                         <Image
                           src={image}
                           alt={`${selectedShirt.name} - ${index === 0 ? 'Front' : 'Back'}`}
                           fill
-                          className="object-cover rounded-lg"
+                          className="object-cover"
                         />
                       </div>
                     </div>
@@ -175,11 +187,11 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">Order Details</h2>
+          <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
+            <h2 className="text-3xl font-bold text-white mb-8" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Order Details</h2>
             <form onSubmit={handleCheckout} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Your Name</Label>
+                <Label htmlFor="name" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Your Name:</Label>
                 <Input
                   id="name"
                   type="text"
@@ -191,7 +203,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Email Address:</Label>
                 <Input
                   id="email"
                   type="email"
@@ -203,7 +215,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Phone Number:</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -215,7 +227,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="size">Size</Label>
+                  <Label htmlFor="size" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Size:</Label>
                   <Select value={selectedSize} onValueChange={setSelectedSize}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select size" />
@@ -231,7 +243,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
+                  <Label htmlFor="quantity" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Quantity:</Label>
                   <Input
                     id="quantity"
                     type="number"
@@ -243,14 +255,14 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 </div>
               </div>
 
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-medium">Total:</span>
-                  <span className="text-2xl font-bold text-blue-600">${totalPrice}</span>
+              <div className="border-t border-white/20 pt-6">
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-xl font-semibold text-white drop-shadow-md">Total:</span>
+                  <span className="text-3xl font-bold text-amber-400 drop-shadow-lg">${totalPrice}</span>
                 </div>
 
                 {error && (
-                  <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                  <div className="mb-6 p-4 bg-red-500/20 border border-red-400/50 text-red-200 rounded-lg backdrop-blur-sm">
                     {error}
                   </div>
                 )}
@@ -258,13 +270,13 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 <Button
                   type="submit"
                   disabled={loading || !selectedShirt}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-blue-950 font-bold text-lg shadow-2xl border-2 border-amber-400/50"
                   size="lg"
                 >
                   {loading ? 'Processing...' : 'Proceed to Checkout'}
                 </Button>
 
-                <p className="text-sm text-gray-600 mt-4 text-center">
+                <p className="text-sm text-amber-100/70 mt-6 text-center leading-relaxed">
                   You will be redirected to Stripe for secure payment processing.<br />
                   A receipt will be emailed to you after payment.
                 </p>
@@ -272,7 +284,8 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
             </form>
           </div>
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
