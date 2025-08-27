@@ -4,6 +4,10 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { loadStripe } from '@stripe/stripe-js';
 import type { Shirt } from '@/db/schema';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Label } from '../../../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 
 console.log('Stripe publishable key:', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'Set' : 'Missing');
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, {
@@ -152,13 +156,18 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 <h3 className="text-xl font-semibold mb-4">Product Images</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {selectedShirt.images.map((image, index) => (
-                    <div key={index} className="relative aspect-square">
-                      <Image
-                        src={image}
-                        alt={`${selectedShirt.name} - View ${index + 1}`}
-                        fill
-                        className="object-cover rounded-lg"
-                      />
+                    <div key={index} className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700 text-center">
+                        {index === 0 ? 'Front' : 'Back'}
+                      </p>
+                      <div className="relative aspect-square">
+                        <Image
+                          src={image}
+                          alt={`${selectedShirt.name} - ${index === 0 ? 'Front' : 'Back'}`}
+                          fill
+                          className="object-cover rounded-lg"
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -169,76 +178,69 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold mb-6">Order Details</h2>
             <form onSubmit={handleCheckout} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Your Name
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="name">Your Name</Label>
+                <Input
+                  id="name"
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="John Doe"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="john@example.com"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="(555) 123-4567"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Size
-                </label>
-                <select
-                  value={selectedSize}
-                  onChange={(e) => setSelectedSize(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {selectedShirt?.sizes?.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="size">Size</Label>
+                  <Select value={selectedSize} onValueChange={setSelectedSize}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedShirt?.sizes?.map((size) => (
+                        <SelectItem key={size} value={size}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                  />
+                </div>
               </div>
 
               <div className="border-t pt-4">
@@ -253,17 +255,14 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                   </div>
                 )}
 
-                <button
+                <Button
                   type="submit"
                   disabled={loading || !selectedShirt}
-                  className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${
-                    loading || !selectedShirt
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
+                  className="w-full"
+                  size="lg"
                 >
                   {loading ? 'Processing...' : 'Proceed to Checkout'}
-                </button>
+                </Button>
 
                 <p className="text-sm text-gray-600 mt-4 text-center">
                   You will be redirected to Stripe for secure payment processing.<br />

@@ -117,7 +117,7 @@ export default function SuccessPage() {
               </div>
               
               {syncStatus === 'synced' && orderDetails.paymentVerified && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
                   <p className="text-green-800 text-sm flex items-center">
                     <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -137,19 +137,12 @@ export default function SuccessPage() {
             </div>
           )}
 
-          <div className="space-y-3">
+          <div className="mt-6">
             <Link
               href="/cougar-comeback-shirt"
-              className="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors text-center"
             >
-              Order Another Shirt
-            </Link>
-            
-            <Link
-              href="/"
-              className="block w-full bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-            >
-              Return to Home
+              Return to Order Page
             </Link>
           </div>
         </div>
