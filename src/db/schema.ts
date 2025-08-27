@@ -22,7 +22,7 @@ export const orders = pgTable('orders', {
   totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
   stripePaymentIntentId: text('stripe_payment_intent_id'),
   stripeSessionId: text('stripe_session_id'),
-  status: text('status').default('pending'), // pending, paid, shipped, cancelled
+  status: text('status').default('pending'), // pending, confirmed, expired, invalid, shipped, cancelled
   shippingAddress: jsonb('shipping_address').$type<{
     line1: string;
     line2?: string;

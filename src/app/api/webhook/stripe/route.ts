@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
           .update(orders)
           .set({
             status: 'paid',
-            stripePaymentIntentId: session.payment_intent as string,
+            stripePaymentIntentId: typeof session.payment_intent === 'string' 
+              ? session.payment_intent 
+              : session.payment_intent?.id,
             shippingAddress: session.shipping_details?.address ? {
               line1: session.shipping_details.address.line1!,
               line2: session.shipping_details.address.line2 || undefined,
