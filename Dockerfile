@@ -13,9 +13,9 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Use Docker-specific build command that skips image generation
-# The images.json file will be copied from local build
-RUN npm run build:docker
+# Build the application with image generation
+# Note: Requires S3 environment variables to be available at build time
+RUN npm run build
    
 # Expose the port that the Next.js app will run on
 EXPOSE 3000
