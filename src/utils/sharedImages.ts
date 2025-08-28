@@ -44,10 +44,10 @@ export async function getProfileImage(): Promise<string | null> {
     }
     
     const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const mainData = JSON.parse(fileContent);
+    const mainData = JSON.parse(fileContent) as { images: Array<{ key: string; name: string; url: string; thumbnailUrl: string }> };
     
     // Look for Nick's specific profile image first
-    const nickProfileImage = mainData.images.find(img => 
+    const nickProfileImage = mainData.images.find((img: { key: string; name: string; url: string; thumbnailUrl: string }) => 
       img.name.toLowerCase().includes('nd-photo-profile-pic.jpg')
     );
     
@@ -69,7 +69,7 @@ export async function getProfileImage(): Promise<string | null> {
     ];
     
     for (const profileName of profileImageNames) {
-      const profileImage = mainData.images.find(img => 
+      const profileImage = mainData.images.find((img: { key: string; name: string; url: string; thumbnailUrl: string }) => 
         img.name.toLowerCase().includes(profileName.toLowerCase()) ||
         img.name.toLowerCase().endsWith(profileName.toLowerCase())
       );
