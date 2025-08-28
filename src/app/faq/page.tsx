@@ -1,5 +1,4 @@
-import { headers } from 'next/headers';
-import { getCategoryFromDomain, siteVersions } from '../config';
+import { siteVersions } from '../config';
 import { generateFAQSchema } from '../../utils/seo';
 
 // Generate metadata for FAQ page
@@ -40,14 +39,8 @@ async function FAQSchema() {
 }
 
 export default async function FAQPage() {
-  // Get the hostname from headers
-  const headersList = await headers();
-  const host = headersList.get('host') || 'localhost';
-  const category = getCategoryFromDomain(host);
-  
-  // Get the configuration based on the domain
-  const configKey = Object.keys(siteVersions).includes(category) ? category : 'default';
-  const config = siteVersions[configKey];
+  // Use the default configuration
+  const config = siteVersions.default;
 
   return (
     <>

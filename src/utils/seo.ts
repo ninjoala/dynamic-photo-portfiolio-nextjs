@@ -1,19 +1,9 @@
 import { Metadata } from 'next';
-import { headers } from 'next/headers';
-import { getCategoryFromDomain, siteVersions } from '../app/config';
+import { siteVersions } from '../app/config';
 
-// Helper function to get current domain category
-export async function getCurrentCategory(): Promise<string> {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'localhost';
-  return getCategoryFromDomain(host);
-}
-
-// Helper function to get current site config
+// Helper function to get default site config
 export async function getCurrentConfig() {
-  const category = await getCurrentCategory();
-  const configKey = Object.keys(siteVersions).includes(category) ? category : 'default';
-  return siteVersions[configKey];
+  return siteVersions.default;
 }
 
 // Base SEO configuration
@@ -72,8 +62,7 @@ export const categorySEO = {
 
 // Generate metadata for home page
 export async function generateHomeMetadata(): Promise<Metadata> {
-  const category = await getCurrentCategory();
-  const seoData = categorySEO[category as keyof typeof categorySEO] || categorySEO.default;
+  const seoData = categorySEO.default;
   const config = await getCurrentConfig();
   
   const title = seoData.title;
@@ -130,8 +119,7 @@ export async function generateHomeMetadata(): Promise<Metadata> {
 
 // Generate metadata for about page
 export async function generateAboutMetadata(): Promise<Metadata> {
-  const category = await getCurrentCategory();
-  const seoData = categorySEO[category as keyof typeof categorySEO] || categorySEO.default;
+  const seoData = categorySEO.default;
   
   const title = `About Nick Dobos - ${seoData.title.replace('Professional ', '')}`;
   const description = `Meet Nick Dobos, a professional photographer in Newnan, GA specializing in ${seoData.services.join(', ').toLowerCase()}. Learn about my passion for photography and experience.`;
@@ -173,8 +161,7 @@ export async function generateAboutMetadata(): Promise<Metadata> {
 
 // Generate metadata for portfolio page
 export async function generatePortfolioMetadata(): Promise<Metadata> {
-  const category = await getCurrentCategory();
-  const seoData = categorySEO[category as keyof typeof categorySEO] || categorySEO.default;
+  const seoData = categorySEO.default;
   const config = await getCurrentConfig();
   
   const title = `${config.photographyCategory.title} Portfolio - Nick Dobos Media`;
@@ -217,8 +204,7 @@ export async function generatePortfolioMetadata(): Promise<Metadata> {
 
 // Generate metadata for contact page
 export async function generateContactMetadata(): Promise<Metadata> {
-  const category = await getCurrentCategory();
-  const seoData = categorySEO[category as keyof typeof categorySEO] || categorySEO.default;
+  const seoData = categorySEO.default;
   
   const title = `Contact Nick Dobos - ${seoData.title.replace('Professional ', '')}`;
   const description = `Contact Nick Dobos for professional photography services in Newnan, GA. Get a quote for ${seoData.services.join(', ').toLowerCase()}. Call ${baseSEO.phone} or email today.`;

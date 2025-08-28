@@ -1,6 +1,5 @@
 import { MetadataRoute } from 'next';
 import { headers } from 'next/headers';
-import { getCategoryFromDomain, photographyCategories } from './config';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Get current domain for base URL generation
@@ -9,10 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
   const baseUrl = `${protocol}://${host}`;
   
-  // Get current category
-  const category = getCategoryFromDomain(host);
-  
-  // Base pages that exist on all sites
+  // Base pages that exist on the site
   const routes = [
     {
       url: baseUrl,
@@ -38,29 +34,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     },
-  ];
-
-  // Add category-specific routes if they exist
-  const categoryData = photographyCategories[category];
-  if (categoryData && category !== 'default') {
-    // Add service-specific pages
-    routes.push({
-      url: `${baseUrl}/services`,
+    {
+      url: `${baseUrl}/faq`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    });
-    
-    // Add pricing page for categories that have pricing
-    if (categoryData.priceRange) {
-      routes.push({
-        url: `${baseUrl}/pricing`,
-        lastModified: new Date(),
-        changeFrequency: 'monthly' as const,
-        priority: 0.7,
-      });
-    }
-  }
+      priority: 0.6,
+    },
+  ];
 
   return routes;
 }
