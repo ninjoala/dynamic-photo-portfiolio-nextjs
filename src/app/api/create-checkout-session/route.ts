@@ -5,7 +5,7 @@ import { shirts, orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-07-30.basil',
 });
 
 export async function POST(request: NextRequest) {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const [order] = await db
+    await db
       .insert(orders)
       .values({
         email,

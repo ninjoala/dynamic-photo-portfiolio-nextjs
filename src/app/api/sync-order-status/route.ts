@@ -5,7 +5,7 @@ import { orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-07-30.basil',
 });
 
 export async function POST(request: NextRequest) {
@@ -47,15 +47,15 @@ export async function POST(request: NextRequest) {
           ? session.payment_intent 
           : session.payment_intent?.id;
         
-        // Update shipping address if available
-        if (session.shipping_details?.address) {
+        // Update shipping address if available (using customer_details which has shipping info)
+        if (session.customer_details?.address) {
           shippingAddress = {
-            line1: session.shipping_details.address.line1!,
-            line2: session.shipping_details.address.line2 || undefined,
-            city: session.shipping_details.address.city!,
-            state: session.shipping_details.address.state!,
-            postalCode: session.shipping_details.address.postal_code!,
-            country: session.shipping_details.address.country!,
+            line1: session.customer_details.address.line1!,
+            line2: session.customer_details.address.line2 || undefined,
+            city: session.customer_details.address.city!,
+            state: session.customer_details.address.state!,
+            postalCode: session.customer_details.address.postal_code!,
+            country: session.customer_details.address.country!,
           };
         }
       } else if (session.payment_status === 'unpaid' && session.status === 'expired') {
@@ -88,11 +88,11 @@ export async function POST(request: NextRequest) {
         statusChanged: order.status !== newStatus,
       });
 
-    } catch (stripeError: any) {
+    } catch (stripeError) {
       console.error('Stripe API error:', stripeError);
       
       // If session not found in Stripe, mark as invalid
-      if (stripeError.code === 'resource_missing') {
+      if ((stripeError as {code?: string}).code === 'resource_missing') {
         await db
           .update(orders)
           .set({
@@ -120,10 +120,10 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to sync all pending orders
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const syncAll = searchParams.get('all') === 'true';
+    // const searchParams = request.nextUrl.searchParams;
+    // const syncAll = searchParams.get('all') === 'true';
 
     // Get all pending orders
     const pendingOrders = await db
@@ -182,11 +182,11 @@ export async function GET(request: NextRequest) {
             reason: 'Status unchanged',
           });
         }
-      } catch (error: any) {
+      } catch (error) {
         results.push({
           orderId: order.id,
           status: 'error',
-          error: error.message,
+          error: (error as Error).message,
         });
       }
     }

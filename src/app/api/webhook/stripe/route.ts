@@ -5,7 +5,7 @@ import { orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-07-30.basil',
 });
 
 export async function POST(request: NextRequest) {
@@ -37,13 +37,13 @@ export async function POST(request: NextRequest) {
             stripePaymentIntentId: typeof session.payment_intent === 'string' 
               ? session.payment_intent 
               : session.payment_intent?.id,
-            shippingAddress: session.shipping_details?.address ? {
-              line1: session.shipping_details.address.line1!,
-              line2: session.shipping_details.address.line2 || undefined,
-              city: session.shipping_details.address.city!,
-              state: session.shipping_details.address.state!,
-              postalCode: session.shipping_details.address.postal_code!,
-              country: session.shipping_details.address.country!,
+            shippingAddress: session.customer_details?.address ? {
+              line1: session.customer_details.address.line1!,
+              line2: session.customer_details.address.line2 || undefined,
+              city: session.customer_details.address.city!,
+              state: session.customer_details.address.state!,
+              postalCode: session.customer_details.address.postal_code!,
+              country: session.customer_details.address.country!,
             } : undefined,
             updatedAt: new Date(),
           })

@@ -2453,6 +2453,11 @@ doctrine@^2.1.0:
   dependencies:
     esutils "^2.0.2"
 
+dotenv@^17.2.1:
+  version "17.2.1"
+  resolved "https://registry.npmjs.org/dotenv/-/dotenv-17.2.1.tgz"
+  integrity sha512-kQhDYKZecqnM0fCnzI5eIv5L4cAe/iRI+HqMbO/hbRdTAeXDG+M9FjipUxNfbARuEg4iHIbhnhs78BCHNbSxEQ==
+
 drizzle-kit@^0.31.4:
   version "0.31.4"
   resolved "https://registry.npmjs.org/drizzle-kit/-/drizzle-kit-0.31.4.tgz"
