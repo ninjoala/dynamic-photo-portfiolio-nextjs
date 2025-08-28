@@ -33,16 +33,20 @@ export default function PortfolioGrid({ onImageClick }: PortfolioGridProps) {
       
       const data = await fetchImageData('default');
       
+      // Filter out images from the 'shared' folder
+      const filteredImages = data.images.filter(image => !image.name.startsWith('shared/'));
+      
       console.log('==== DEBUG: Image Loading ====');
       console.log('Raw data from images.json:', data);
       console.log('Total images loaded:', data.images.length);
+      console.log('Images after filtering out shared folder:', filteredImages.length);
       console.log('==== END DEBUG ====');
       
-      setImages(data.images);
+      setImages(filteredImages);
       
-      // Initialize loading states for all images
+      // Initialize loading states for filtered images
       const initialLoadingStates: Record<string, boolean> = {};
-      data.images.forEach((img: GalleryImage) => {
+      filteredImages.forEach((img: GalleryImage) => {
         initialLoadingStates[img.key] = true;
       });
       setImageLoadingStates(initialLoadingStates);

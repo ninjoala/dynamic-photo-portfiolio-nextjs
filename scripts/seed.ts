@@ -24,7 +24,7 @@ async function main() {
     const insertedShirts = await db.insert(shirts).values([
       {
         name: 'Beat Everybody',
-        description: 'Beat Everybody shirt with bold design and message',
+        description: 'Cougars On Top: Beat Everybody Tee',
         price: '25.00',
         images: [
           'https://wasabindmdemo.imgix.net/shared/beat-everybody-front.png?fit=crop&crop=entropy&q=80&fm=webp',
@@ -35,7 +35,7 @@ async function main() {
       },
       {
         name: 'Cougar Comeback',
-        description: 'The original Cougar Comeback shirt featuring our iconic design',
+        description: 'Cougar Comeback: The Rivalry Win Tee',
         price: '25.00',
         images: [
           'https://wasabindmdemo.imgix.net/shared/cougar-comeback-front.png?fit=crop&crop=entropy&q=80&fm=webp',

@@ -132,19 +132,25 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
   const totalPrice = selectedShirt ? (parseFloat(selectedShirt.price) * quantity).toFixed(2) : '0.00';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden" style={{background: 'linear-gradient(to bottom right, #0f2942, #1a3a52, #0f2942)'}}>
       {/* Background decorative elements */}
       <div className="absolute inset-0">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-60 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-64 h-64 bg-amber-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl" style={{backgroundColor: '#b4a36b33'}}></div>
+        <div className="absolute top-60 -left-40 w-96 h-96 rounded-full blur-3xl" style={{backgroundColor: '#0f294233'}}></div>
+        <div className="absolute bottom-20 right-20 w-64 h-64 rounded-full blur-3xl" style={{backgroundColor: '#b4a36b33'}}></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 py-12">
         <div className="text-center mb-16 mt-12">
           <h1 className="text-6xl font-bold text-white mb-4" style={{textShadow: '0 4px 8px rgba(0,0,0,0.8), 0 8px 16px rgba(0,0,0,0.4)'}}>
-            Cougar Comeback
+            The Cougar Comeback
           </h1>
+          <p className="text-2xl mb-4" style={{color: '#b4a36b', textShadow: '0 2px 4px rgba(0,0,0,0.6)'}}>
+            Down to the Wire. Up in the History Books
+          </p>
+          <p className="text-xl font-semibold italic" style={{color: '#b4a36b', textShadow: '0 2px 4px rgba(0,0,0,0.7)'}}>
+            Wear the Win. Remember the Comeback.
+          </p>
         </div>
 
         {shirts.length === 0 ? (
@@ -165,9 +171,13 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                         <div
                           className={`border-2 rounded-xl p-6 cursor-pointer transition-all duration-300 ${
                             selectedShirt?.id === shirt.id
-                              ? 'border-amber-400 bg-amber-500/10 shadow-xl scale-105'
-                              : 'border-white/30 bg-white/5 hover:border-amber-300/50 hover:bg-white/10'
+                              ? 'shadow-xl scale-105'
+                              : 'border-white/30 bg-white/5 hover:bg-white/10'
                           }`}
+                          style={selectedShirt?.id === shirt.id ? {
+                            borderColor: '#b4a36b',
+                            backgroundColor: 'rgba(180, 163, 107, 0.1)'
+                          } : {}}
                           onClick={() => setSelectedShirt(shirt)}
                         >
                           <div className="flex items-start space-x-4">
@@ -184,9 +194,9 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                           <div className="flex-1">
                             <h3 className="font-bold text-xl text-white drop-shadow-md">{shirt.name}</h3>
                             {shirt.description && (
-                              <p className="text-amber-100/80 text-sm mt-2 leading-relaxed">{shirt.description}</p>
+                              <p className="text-lg font-medium mt-3 leading-relaxed" style={{color: '#b4a36b', textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{shirt.description}</p>
                             )}
-                            <p className="text-2xl font-bold text-amber-400 mt-3 drop-shadow-lg">
+                            <p className="text-2xl font-bold mt-3 drop-shadow-lg" style={{color: '#b4a36b'}}>
                               ${shirt.price}
                             </p>
                           </div>
@@ -206,7 +216,10 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                                         {index === 0 ? 'Front' : 'Back'}
                                       </p>
                                       <div 
-                                        className="relative aspect-square rounded-lg overflow-hidden border border-white/20 shadow-lg cursor-pointer hover:border-amber-400/50 transition-colors"
+                                        className="relative aspect-square rounded-lg overflow-hidden border border-white/20 shadow-lg cursor-pointer transition-colors hover:shadow-xl"
+                                        style={{'--hover-border': '#b4a36b'} as React.CSSProperties}
+                                        onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = '#b4a36b'}
+                                        onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255, 255, 255, 0.2)'}
                                         onClick={() => handleImageClick(image, `${shirt.name} - ${index === 0 ? 'Front' : 'Back'}`)}
                                       >
                                         <Image
@@ -247,7 +260,9 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                           {index === 0 ? 'Front' : 'Back'}
                         </p>
                         <div 
-                          className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/30 shadow-2xl hover:scale-105 transition-transform duration-300 cursor-pointer hover:border-amber-400/50"
+                          className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/30 shadow-2xl hover:scale-105 transition-transform duration-300 cursor-pointer"
+                          onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = '#b4a36b'}
+                          onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255, 255, 255, 0.3)'}
                           onClick={() => handleImageClick(image, `${selectedShirt.name} - ${index === 0 ? 'Front' : 'Back'}`)}
                         >
                           <Image
@@ -354,11 +369,16 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
               <div className="border-t border-white/20 pt-6">
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-xl font-semibold text-white drop-shadow-md">Total:</span>
-                  <span className="text-3xl font-bold text-amber-400 drop-shadow-lg">${totalPrice}</span>
+                  <span className="text-3xl font-bold drop-shadow-lg" style={{color: '#b4a36b'}}>${totalPrice}</span>
                 </div>
 
                 {error && (
-                  <div className="mb-6 p-4 bg-red-500/20 border border-red-400/50 text-red-200 rounded-lg backdrop-blur-sm">
+                  <div className="mb-6 p-4 rounded-lg backdrop-blur-sm" style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: 'rgba(248, 113, 113, 0.5)',
+                    border: '1px solid',
+                    color: '#fecaca'
+                  }}>
                     {error}
                   </div>
                 )}
@@ -366,13 +386,24 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 <Button
                   type="submit"
                   disabled={loading || !selectedShirt}
-                  className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-blue-950 font-bold text-lg shadow-2xl border-2 border-amber-400/50"
+                  className="w-full font-bold text-lg shadow-2xl border-2"
+                  style={{
+                    background: 'linear-gradient(to right, #b4a36b, #c4b47b)',
+                    color: '#0f2942',
+                    borderColor: 'rgba(180, 163, 107, 0.5)'
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #a49358, #b4a36b)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #b4a36b, #c4b47b)';
+                  }}
                   size="lg"
                 >
                   {loading ? 'Processing...' : 'Proceed to Checkout'}
                 </Button>
 
-                <p className="text-sm text-amber-100/70 mt-6 text-center leading-relaxed">
+                <p className="text-sm mt-6 text-center leading-relaxed" style={{color: 'rgba(180, 163, 107, 0.7)'}}>
                   You will be redirected to Stripe for secure payment processing.<br />
                   A receipt will be emailed to you after payment.
                 </p>
