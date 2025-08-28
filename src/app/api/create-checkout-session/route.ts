@@ -28,12 +28,47 @@ export async function POST(request: NextRequest) {
 
     const totalAmount = parseFloat(shirt.price) * quantity;
 
-    // Get base URL with fallback for deployment
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
-                   process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` :
-                   'http://localhost:3000';
+    // Get base URL with robust fallback logic
+    const getBaseUrl = () => {
+      // First priority: explicitly set base URL
+      if (process.env.NEXT_PUBLIC_BASE_URL) {
+        return process.env.NEXT_PUBLIC_BASE_URL;
+      }
 
+      // Second priority: Vercel environment variables
+      if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+      }
+      if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+        return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+      }
+
+      // Third priority: request headers
+      const origin = request.headers.get('origin');
+      if (origin) {
+        return origin;
+      }
+
+      const host = request.headers.get('host');
+      if (host) {
+        // Determine protocol based on host or default to https for production
+        const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
+        return `${protocol}://${host}`;
+      }
+
+      // Fallback for development
+      return 'http://localhost:3000';
+    };
+
+    const baseUrl = getBaseUrl();
+
+    console.log('Environment variables:', {
+      NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+      VERCEL_URL: process.env.VERCEL_URL,
+      NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
+      origin: request.headers.get('origin'),
+      host: request.headers.get('host'),
+    });
     console.log('Using base URL:', baseUrl);
 
     const session = await stripe.checkout.sessions.create({
