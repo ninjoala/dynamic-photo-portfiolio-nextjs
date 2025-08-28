@@ -28,6 +28,14 @@ export async function POST(request: NextRequest) {
 
     const totalAmount = parseFloat(shirt.price) * quantity;
 
+    // Get base URL with fallback for deployment
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
+                   process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` :
+                   'http://localhost:3000';
+
+    console.log('Using base URL:', baseUrl);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -45,8 +53,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cougar-comeback-shirt/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cougar-comeback-shirt`,
+      success_url: `${baseUrl}/cougar-comeback-shirt/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/cougar-comeback-shirt`,
       customer_email: email,
       shipping_address_collection: {
         allowed_countries: ['US'],

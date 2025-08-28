@@ -22,6 +22,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
   const [email, setEmail] = useState('');
+  const [confirmEmail, setConfirmEmail] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -65,6 +66,12 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
 
     if (!selectedShirt) {
       setError('Please select a shirt');
+      setLoading(false);
+      return;
+    }
+
+    if (email !== confirmEmail) {
+      setError('Email addresses do not match');
       setLoading(false);
       return;
     }
@@ -287,6 +294,18 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="john@example.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmEmail" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Confirm Email Address:</Label>
+                <Input
+                  id="confirmEmail"
+                  type="email"
+                  required
+                  value={confirmEmail}
+                  onChange={(e) => setConfirmEmail(e.target.value)}
                   placeholder="john@example.com"
                 />
               </div>
