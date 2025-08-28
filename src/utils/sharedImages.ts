@@ -35,10 +35,12 @@ export async function fetchSharedImages(): Promise<SharedImageData> {
 
 export async function getProfileImage(): Promise<string | null> {
   try {
-    const sharedData = await fetchSharedImages();
+    // Use the main images.json file instead of shared-specific file
+    const { fetchImageData } = await import('./fetchImageData');
+    const mainData = await fetchImageData('default');
     
     // Look for Nick's specific profile image first
-    const nickProfileImage = sharedData.images.find(img => 
+    const nickProfileImage = mainData.images.find(img => 
       img.name.toLowerCase().includes('nd-photo-profile-pic.jpg')
     );
     
@@ -60,7 +62,7 @@ export async function getProfileImage(): Promise<string | null> {
     ];
     
     for (const profileName of profileImageNames) {
-      const profileImage = sharedData.images.find(img => 
+      const profileImage = mainData.images.find(img => 
         img.name.toLowerCase().includes(profileName.toLowerCase()) ||
         img.name.toLowerCase().endsWith(profileName.toLowerCase())
       );
