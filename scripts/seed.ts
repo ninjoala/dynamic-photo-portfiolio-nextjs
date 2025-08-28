@@ -1,31 +1,34 @@
-import { db } from '../src/db';
-import { shirts } from '../src/db/schema';
+import { config } from 'dotenv';
+config({ path: '.env.local' });
 
 async function main() {
+  // Import db AFTER dotenv config
+  const { db } = await import('../src/db');
+  const { shirts } = await import('../src/db/schema');
+  const { reset, seed } = await import('drizzle-seed');
   try {
     if (!db) {
       console.error('❌ Database connection not available');
       process.exit(1);
     }
     
-    console.log('Starting database seed...');
+    console.log('Starting database seed with drizzle-seed...');
     
-    // Check if shirts already exist
-    const existing = await db.select().from(shirts);
-    if (existing.length > 0) {
-      console.log(`Found ${existing.length} existing shirts. Skipping seed.`);
-      return;
-    }
+    // Reset shirts table
+    console.log('Resetting shirts table...');
+    await reset(db, { shirts });
     
-    console.log('Inserting shirts...');
-    const insertedShirts = await db!.insert(shirts).values([
+    console.log('Seeding shirts with custom data...');
+    
+    // Insert shirts with specific data
+    const insertedShirts = await db.insert(shirts).values([
       {
         name: 'Beat Everybody',
         description: 'Beat Everybody shirt with bold design and message',
         price: '25.00',
         images: [
-          'https://wasabindmdemo.imgix.net/shared/t-shirt-1.jpg?fit=crop&crop=entropy&q=80&fm=webp',
-          'https://wasabindmdemo.imgix.net/shared/t-shirt-1.jpg?fit=crop&crop=entropy&q=80&fm=webp',
+          'https://wasabindmdemo.imgix.net/shared/beat-everybody-front.png?fit=crop&crop=entropy&q=80&fm=webp',
+          'https://wasabindmdemo.imgix.net/shared/beat-everybody-back.png?fit=crop&crop=entropy&q=80&fm=webp',
         ],
         sizes: ['S', 'M', 'L', 'XL', 'XXL', '3XL'],
         active: true,
@@ -35,8 +38,8 @@ async function main() {
         description: 'The original Cougar Comeback shirt featuring our iconic design',
         price: '25.00',
         images: [
-          'https://wasabindmdemo.imgix.net/shared/t-shirt-1.jpg?fit=crop&crop=entropy&q=80&fm=webp',
-          'https://wasabindmdemo.imgix.net/shared/t-shirt-1.jpg?fit=crop&crop=entropy&q=80&fm=webp',
+          'https://wasabindmdemo.imgix.net/shared/cougar-comeback-front.png?fit=crop&crop=entropy&q=80&fm=webp',
+          'https://wasabindmdemo.imgix.net/shared/cougar-comeback-back.png?fit=crop&crop=entropy&q=80&fm=webp',
         ],
         sizes: ['S', 'M', 'L', 'XL', 'XXL', '3XL'],
         active: true,

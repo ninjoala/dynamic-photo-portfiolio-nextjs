@@ -12,6 +12,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run lint` - Run ESLint
 - `npm run generate-image-data` - Generate image data from Wasabi S3 bucket
 
+### Database Operations
+- `npm run db:seed` - Seed database with initial shirt data using drizzle-seed
+- `npm run db:push` - Push schema changes to database
+- `npm run db:studio` - Launch Drizzle Studio database GUI
+- `npm run db:migrate` - Run database migrations
+- `npm run db:generate` - Generate new migration files
+
 ### Package Management
 This project uses Yarn 4.5.1 as the package manager (see packageManager field in package.json).
 
@@ -85,3 +92,39 @@ scripts/
 - Responsive design with Tailwind CSS
 - Contact form integration with Postmark email service
 - React 19 with Next.js 15 App Router
+
+## Database Connection Issues & Solutions
+
+### Environment Variable Loading Problem
+**Issue**: Scripts that import database modules at the top level fail with "DATABASE_URL is not set" error, even when using dotenv.
+
+**Root Cause**: Node.js executes top-level imports immediately, before dotenv can load .env.local variables. The database module tries to read DATABASE_URL during import, before environment variables are available.
+
+**Solution**: Use dynamic imports in scripts to ensure environment variables load first:
+
+```typescript
+// ❌ WRONG - imports happen before dotenv
+import { config } from 'dotenv';
+config({ path: '.env.local' });
+import { db } from '../src/db';
+
+// ✅ CORRECT - dynamic imports after dotenv
+import { config } from 'dotenv';
+config({ path: '.env.local' });
+
+async function main() {
+  const { db } = await import('../src/db');
+  // ... rest of script
+}
+```
+
+### Drizzle Seed Usage
+- Uses `drizzle-seed` package for database seeding and reset operations
+- Seed script located at `scripts/seed.ts` with proper dynamic import pattern
+- Reset function clears tables with CASCADE to handle foreign key constraints
+- Custom shirt data insertion after reset to maintain specific product information
+
+### Database Schema
+- Shirts table with JSONB fields for images array and sizes array
+- Orders table with foreign key reference to shirts
+- Uses Supabase PostgreSQL with pooler connection for scalability
