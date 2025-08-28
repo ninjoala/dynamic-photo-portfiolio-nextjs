@@ -287,12 +287,12 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
             
             {/* Preview of what's being added */}
             {selectedShirt && !showAddedMessage && (
-              <div className="bg-white/20 backdrop-blur-md rounded-xl p-6 mb-6 border-2 shadow-xl" style={{ borderColor: 'rgba(180, 163, 107, 0.4)' }}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white" style={{textShadow: '0 2px 4px rgba(0,0,0,0.6)'}}>
+              <div className="bg-white/20 backdrop-blur-md rounded-xl p-3 sm:p-6 mb-4 sm:mb-6 border-2 shadow-xl" style={{ borderColor: 'rgba(180, 163, 107, 0.4)' }}>
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h3 className="text-base sm:text-lg font-bold text-white" style={{textShadow: '0 2px 4px rgba(0,0,0,0.6)'}}>
                     You&apos;re Adding:
                   </h3>
-                  <div className="px-3 py-1 rounded-full text-sm font-bold" style={{ 
+                  <div className="px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold" style={{ 
                     backgroundColor: '#b4a36b',
                     color: '#0f2942'
                   }}>
@@ -300,10 +300,10 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                   </div>
                 </div>
                 
-                <div className="bg-black/20 rounded-lg p-4">
-                  <div className="flex items-center gap-4">
+                <div className="bg-black/20 rounded-lg p-3 sm:p-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
                     {selectedShirt.images && selectedShirt.images[0] && (
-                      <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2" style={{ borderColor: '#b4a36b' }}>
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden border-2" style={{ borderColor: '#b4a36b' }}>
                         <Image
                           src={selectedShirt.images[0]}
                           alt={selectedShirt.name}
@@ -312,14 +312,14 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                         />
                       </div>
                     )}
-                    <div className="flex-1">
-                      <h4 className="font-bold text-white text-xl mb-2" style={{textShadow: '0 1px 2px rgba(0,0,0,0.8)'}}>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-white text-lg sm:text-xl mb-2" style={{textShadow: '0 1px 2px rgba(0,0,0,0.8)'}}>
                         {selectedShirt.name}
                       </h4>
-                      <div className="flex items-center gap-4 mb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-white/80 font-medium">Size:</span>
-                          <span className="px-3 py-1 rounded-full text-lg font-bold" style={{ 
+                          <span className="text-white/80 font-medium text-sm">Size:</span>
+                          <span className="px-2 py-1 sm:px-3 sm:py-1 rounded-full text-sm sm:text-lg font-bold" style={{ 
                             backgroundColor: '#b4a36b',
                             color: '#0f2942'
                           }}>
@@ -327,8 +327,8 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-white/80 font-medium">Qty:</span>
-                          <span className="px-3 py-1 rounded-full text-lg font-bold" style={{ 
+                          <span className="text-white/80 font-medium text-sm">Qty:</span>
+                          <span className="px-2 py-1 sm:px-3 sm:py-1 rounded-full text-sm sm:text-lg font-bold" style={{ 
                             backgroundColor: '#b4a36b',
                             color: '#0f2942'
                           }}>
@@ -337,8 +337,8 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-white/70 font-medium">Item Total:</span>
-                        <span className="text-2xl font-bold text-white" style={{textShadow: '0 2px 4px rgba(180, 163, 107, 0.6)'}}>
+                        <span className="text-white/70 font-medium text-sm sm:text-base">Item Total:</span>
+                        <span className="text-lg sm:text-2xl font-bold text-white" style={{textShadow: '0 2px 4px rgba(180, 163, 107, 0.6)'}}>
                           ${(parseFloat(selectedShirt.price) * quantity).toFixed(2)}
                         </span>
                       </div>
