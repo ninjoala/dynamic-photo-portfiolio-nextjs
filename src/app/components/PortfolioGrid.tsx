@@ -16,11 +16,10 @@ interface GalleryImage {
 }
 
 interface PortfolioGridProps {
-  mode: string;
   onImageClick: (index: number) => void;
 }
 
-export default function PortfolioGrid({ mode, onImageClick }: PortfolioGridProps) {
+export default function PortfolioGrid({ onImageClick }: PortfolioGridProps) {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,42 +31,18 @@ export default function PortfolioGrid({ mode, onImageClick }: PortfolioGridProps
       setLoading(true);
       setError(null);
       
-      // Try fetching mode-specific data, fallback to default if not found
-      let data;
-      let effectiveMode = mode;
-      try {
-        data = await fetchImageData(mode);
-      } catch (err) {
-        console.warn(`Failed to load images for mode "${mode}", falling back to default if not found`, err);
-        data = await fetchImageData('default');
-        effectiveMode = 'default';
-      }
+      const data = await fetchImageData('default');
       
       console.log('==== DEBUG: Image Loading ====');
-      console.log('Requested Mode:', mode);
-      console.log('Effective Mode:', effectiveMode);
       console.log('Raw data from images.json:', data);
-      
-      // Filter images to only those in the root of the category folder (no nested subfolders)
-      const filteredImages = data.images.filter((img: GalleryImage) => {
-        if (effectiveMode === 'default') return true;
-        // Convert effective mode to match bucket folder structure
-        const folderName = effectiveMode === 'realestate' ? 'real-estate' : effectiveMode;
-        if (!img.name.startsWith(`${folderName}/`)) return false;
-        // Exclude nested subfolders: ensure only one slash in the path
-        const pathAfter = img.name.slice(folderName.length + 1);
-        const isRootLevel = !pathAfter.includes('/');
-        return isRootLevel;
-      });
-      
-      console.log('Final filtered images:', filteredImages.length);
+      console.log('Total images loaded:', data.images.length);
       console.log('==== END DEBUG ====');
       
-      setImages(filteredImages);
+      setImages(data.images);
       
       // Initialize loading states for all images
       const initialLoadingStates: Record<string, boolean> = {};
-      filteredImages.forEach((img: GalleryImage) => {
+      data.images.forEach((img: GalleryImage) => {
         initialLoadingStates[img.key] = true;
       });
       setImageLoadingStates(initialLoadingStates);
@@ -78,7 +53,7 @@ export default function PortfolioGrid({ mode, onImageClick }: PortfolioGridProps
     } finally {
       setLoading(false);
     }
-  }, [mode]);
+  }, []);
 
   useEffect(() => {
     loadImages();
@@ -137,7 +112,7 @@ export default function PortfolioGrid({ mode, onImageClick }: PortfolioGridProps
             <AspectRatio ratio={1}>
               <Image
                 src={image.thumbnailUrl}
-                alt={generateImageAltText(image.name, mode, index)}
+                alt={generateImageAltText(image.name, 'default', index)}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 className={`object-cover transition-opacity duration-300 group-hover:scale-105 ${

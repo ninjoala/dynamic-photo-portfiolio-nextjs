@@ -117,72 +117,104 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
             </div>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-2 gap-12">
-            <div className="space-y-8">
-              <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
-                <h2 className="text-3xl font-bold text-white mb-6" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Select Your Shirt</h2>
-                <div className="grid gap-6">
-                  {shirts.map((shirt) => (
-                    <div
-                      key={shirt.id}
-                      className={`border-2 rounded-xl p-6 cursor-pointer transition-all duration-300 ${
-                        selectedShirt?.id === shirt.id
-                          ? 'border-amber-400 bg-amber-500/10 shadow-xl scale-105'
-                          : 'border-white/30 bg-white/5 hover:border-amber-300/50 hover:bg-white/10'
-                      }`}
-                      onClick={() => setSelectedShirt(shirt)}
-                    >
-                      <div className="flex items-start space-x-4">
-                      {shirt.images && shirt.images.length > 0 && (
-                        <div className="relative w-24 h-24 flex-shrink-0">
-                          <Image
-                            src={shirt.images[0]}
-                            alt={shirt.name}
-                            fill
-                            className="object-cover rounded"
-                          />
+          <>
+            <div className="grid lg:grid-cols-2 gap-12">
+              <div className="space-y-8">
+                <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
+                  <h2 className="text-3xl font-bold text-white mb-6" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Select Your Shirt</h2>
+                  <div className="grid gap-6">
+                    {shirts.map((shirt) => (
+                      <div key={shirt.id}>
+                        <div
+                          className={`border-2 rounded-xl p-6 cursor-pointer transition-all duration-300 ${
+                            selectedShirt?.id === shirt.id
+                              ? 'border-amber-400 bg-amber-500/10 shadow-xl scale-105'
+                              : 'border-white/30 bg-white/5 hover:border-amber-300/50 hover:bg-white/10'
+                          }`}
+                          onClick={() => setSelectedShirt(shirt)}
+                        >
+                          <div className="flex items-start space-x-4">
+                          {shirt.images && shirt.images.length > 0 && (
+                            <div className="relative w-24 h-24 flex-shrink-0">
+                              <Image
+                                src={shirt.images[0]}
+                                alt={shirt.name}
+                                fill
+                                className="object-cover rounded"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <h3 className="font-bold text-xl text-white drop-shadow-md">{shirt.name}</h3>
+                            {shirt.description && (
+                              <p className="text-amber-100/80 text-sm mt-2 leading-relaxed">{shirt.description}</p>
+                            )}
+                            <p className="text-2xl font-bold text-amber-400 mt-3 drop-shadow-lg">
+                              ${shirt.price}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      <div className="flex-1">
-                        <h3 className="font-bold text-xl text-white drop-shadow-md">{shirt.name}</h3>
-                        {shirt.description && (
-                          <p className="text-amber-100/80 text-sm mt-2 leading-relaxed">{shirt.description}</p>
-                        )}
-                        <p className="text-2xl font-bold text-amber-400 mt-3 drop-shadow-lg">
-                          ${shirt.price}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                        </div>
 
-            {selectedShirt && selectedShirt.images && selectedShirt.images.length > 0 && (
-              <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
-                <h3 className="text-3xl font-bold text-white mb-6" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Product Images</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  {selectedShirt.images.map((image, index) => (
-                    <div key={index} className="space-y-3">
-                      <p className="text-lg font-semibold text-white text-center drop-shadow-md">
-                        {index === 0 ? 'Front' : 'Back'}
-                      </p>
-                      <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/30 shadow-2xl hover:scale-105 transition-transform duration-300">
-                        <Image
-                          src={image}
-                          alt={`${selectedShirt.name} - ${index === 0 ? 'Front' : 'Back'}`}
-                          fill
-                          className="object-cover"
-                        />
+                        {/* Product images that slide out beneath selected shirt */}
+                        {selectedShirt?.id === shirt.id && shirt.images && shirt.images.length > 0 && (
+                          <div className="lg:hidden overflow-hidden">
+                            <div className="mt-4 animate-slide-down">
+                              <div className="bg-white/15 backdrop-blur-sm rounded-xl border border-white/20 p-4">
+                                <h4 className="text-lg font-semibold text-white mb-4 text-center drop-shadow-md">Product Images</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                  {shirt.images.map((image, index) => (
+                                    <div key={index} className="space-y-2">
+                                      <p className="text-sm font-medium text-white text-center drop-shadow-md">
+                                        {index === 0 ? 'Front' : 'Back'}
+                                      </p>
+                                      <div className="relative aspect-square rounded-lg overflow-hidden border border-white/20 shadow-lg">
+                                        <Image
+                                          src={image}
+                                          alt={`${shirt.name} - ${index === 0 ? 'Front' : 'Back'}`}
+                                          fill
+                                          className="object-cover"
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
+              {/* Desktop product images - only show on lg screens and up */}
+              {selectedShirt && selectedShirt.images && selectedShirt.images.length > 0 && (
+                <div className="hidden lg:block bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
+                  <h3 className="text-3xl font-bold text-white mb-6" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Product Images</h3>
+                  <div className="grid grid-cols-2 gap-6">
+                    {selectedShirt.images.map((image, index) => (
+                      <div key={index} className="space-y-3">
+                        <p className="text-lg font-semibold text-white text-center drop-shadow-md">
+                          {index === 0 ? 'Front' : 'Back'}
+                        </p>
+                        <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/30 shadow-2xl hover:scale-105 transition-transform duration-300">
+                          <Image
+                            src={image}
+                            alt={`${selectedShirt.name} - ${index === 0 ? 'Front' : 'Back'}`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8 mt-12">
             <h2 className="text-3xl font-bold text-white mb-8" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Order Details</h2>
             <form onSubmit={handleCheckout} className="space-y-6">
               <div className="space-y-2">
@@ -277,8 +309,8 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 </p>
               </div>
             </form>
-          </div>
-        </div>
+            </div>
+          </>
         )}
       </div>
     </div>

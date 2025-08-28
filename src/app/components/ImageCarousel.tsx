@@ -26,7 +26,6 @@ interface ImageCarouselProps {
   onClose: () => void;
   images: GalleryImage[];
   initialIndex: number;
-  mode: string;
 }
 
 interface PreloadedImage {
@@ -35,7 +34,7 @@ interface PreloadedImage {
   element?: HTMLImageElement;
 }
 
-export default function ImageCarousel({ isOpen, onClose, images, initialIndex, mode }: ImageCarouselProps) {
+export default function ImageCarousel({ isOpen, onClose, images, initialIndex }: ImageCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(initialIndex);
   const [count, setCount] = useState(0);
@@ -237,7 +236,7 @@ export default function ImageCarousel({ isOpen, onClose, images, initialIndex, m
                         <Image
                           key={`${index}-${displayUrl}`}
                           src={displayUrl}
-                          alt={generateImageAltText(image.name, mode, index)}
+                          alt={generateImageAltText(image.name, 'default', index)}
                           fill
                           className="object-contain"
                           onLoad={handleImageLoad}

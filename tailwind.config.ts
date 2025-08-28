@@ -58,6 +58,7 @@ export default {
         'spin-slow': 'spin 3s linear infinite',
         'fade-up': 'fadeUp 1.5s ease-out forwards',
         'fade-up-delay': 'fadeUp 1.5s ease-out 0.5s forwards',
+        'slide-down': 'slideDown 0.3s ease-out forwards',
       },
       keyframes: {
         ping: {
@@ -74,6 +75,18 @@ export default {
           '100%': {
             opacity: '1',
             transform: 'translateY(0)',
+          },
+        },
+        slideDown: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(-10px)',
+            maxHeight: '0',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)',
+            maxHeight: '500px',
           },
         },
       },
