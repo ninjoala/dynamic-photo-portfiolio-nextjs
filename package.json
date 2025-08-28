@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "npm run generate-image-data && next dev",
     "build": "npm run generate-image-data && next build",
+    "build:docker": "next build",
     "build:production": "npm run generate-image-data && next build",
     "start": "next start",
     "lint": "next lint",

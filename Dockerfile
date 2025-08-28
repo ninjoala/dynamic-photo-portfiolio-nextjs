@@ -13,8 +13,9 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Use the regular build command if token is provided, otherwise use production build
-RUN npm run build
+# Use Docker-specific build command that skips image generation
+# The images.json file will be copied from local build
+RUN npm run build:docker
    
 # Expose the port that the Next.js app will run on
 EXPOSE 3000
