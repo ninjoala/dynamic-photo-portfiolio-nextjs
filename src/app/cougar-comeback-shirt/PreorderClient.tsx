@@ -19,6 +19,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
   const [selectedShirt, setSelectedShirt] = useState<Shirt | null>(null);
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
+  const [quantityInput, setQuantityInput] = useState('1');
   const [showAddedMessage, setShowAddedMessage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -77,6 +78,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
 
     // Reset quantity
     setQuantity(1);
+    setQuantityInput('1');
   };
 
 
@@ -388,23 +390,33 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                     type="number"
                     min="1"
                     max="10"
-                    value={quantity}
+                    value={quantityInput}
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value === '') {
-                        return;
-                      }
-                      const numValue = parseInt(value);
-                      if (!isNaN(numValue) && numValue >= 1 && numValue <= 10) {
-                        setQuantity(numValue);
+                      // Allow empty string and numbers
+                      if (value === '' || /^\d*$/.test(value)) {
+                        setQuantityInput(value);
+                        // Update quantity if valid number
+                        if (value !== '') {
+                          const numValue = parseInt(value);
+                          if (!isNaN(numValue) && numValue >= 1 && numValue <= 10) {
+                            setQuantity(numValue);
+                          }
+                        }
                       }
                     }}
                     onBlur={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (isNaN(value) || value < 1) {
+                      const value = e.target.value;
+                      const numValue = parseInt(value);
+                      if (value === '' || isNaN(numValue) || numValue < 1) {
                         setQuantity(1);
-                      } else if (value > 10) {
+                        setQuantityInput('1');
+                      } else if (numValue > 10) {
                         setQuantity(10);
+                        setQuantityInput('10');
+                      } else {
+                        setQuantity(numValue);
+                        setQuantityInput(numValue.toString());
                       }
                     }}
                     className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/30 rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
