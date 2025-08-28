@@ -389,7 +389,24 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                     min="1"
                     max="10"
                     value={quantity}
-                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        return;
+                      }
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue) && numValue >= 1 && numValue <= 10) {
+                        setQuantity(numValue);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (isNaN(value) || value < 1) {
+                        setQuantity(1);
+                      } else if (value > 10) {
+                        setQuantity(10);
+                      }
+                    }}
                     className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/30 rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
                   />
                 </div>
