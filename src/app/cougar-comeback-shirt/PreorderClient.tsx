@@ -396,7 +396,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                     sizes="(max-width: 768px) 90vw, (max-width: 1200px) 80vw, 70vw"
                     priority
                     unoptimized
-                    onError={(e) => {
+                    onError={() => {
                       console.error('Image failed to load:', selectedImage.url);
                     }}
                     onLoad={() => {
