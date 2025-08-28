@@ -1,5 +1,15 @@
 import dotenv from 'dotenv';
+// Try to load .env.local if it exists (for local development)
+// In Docker, environment variables will be provided by the container
 dotenv.config({ path: '.env.local' });
+
+// Debug: Log environment variables to see what's available
+console.log('Environment variables check:');
+console.log('WASABI_BUCKET_NAME:', process.env.WASABI_BUCKET_NAME ? 'SET' : 'MISSING');
+console.log('WASABI_ACCESS_KEY_ID:', process.env.WASABI_ACCESS_KEY_ID ? 'SET' : 'MISSING');
+console.log('WASABI_SECRET_ACCESS_KEY:', process.env.WASABI_SECRET_ACCESS_KEY ? 'SET' : 'MISSING');
+console.log('WASABI_REGION:', process.env.WASABI_REGION || 'MISSING');
+console.log('WASABI_ENDPOINT:', process.env.WASABI_ENDPOINT || 'MISSING');
 
 import { S3Client, ListObjectsV2Command, _Object } from "@aws-sdk/client-s3";
 import fs from 'fs';
