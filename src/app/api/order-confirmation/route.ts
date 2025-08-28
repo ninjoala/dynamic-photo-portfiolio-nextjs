@@ -5,6 +5,10 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
+    if (!db) {
+      return NextResponse.json({ error: 'Database not available' }, { status: 503 });
+    }
+    
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get('session_id');
 

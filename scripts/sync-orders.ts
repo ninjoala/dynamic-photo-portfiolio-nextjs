@@ -8,6 +8,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 async function syncOrders() {
+  if (!db) {
+    console.error('❌ Database connection not available');
+    process.exit(1);
+  }
+  
   console.log('Fetching all pending orders...');
   
   const pendingOrders = await db

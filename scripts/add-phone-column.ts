@@ -3,6 +3,11 @@ import { sql } from 'drizzle-orm';
 
 async function addPhoneColumn() {
   try {
+    if (!db) {
+      console.error('❌ Database connection not available');
+      process.exit(1);
+    }
+    
     console.log('Adding phone column to orders table...');
     
     // Check if column already exists

@@ -3,6 +3,11 @@ import { shirts } from '../src/db/schema';
 
 async function main() {
   try {
+    if (!db) {
+      console.error('❌ Database connection not available');
+      process.exit(1);
+    }
+    
     console.log('Starting database seed...');
     
     // Check if shirts already exist
@@ -13,7 +18,7 @@ async function main() {
     }
     
     console.log('Inserting shirts...');
-    const insertedShirts = await db.insert(shirts).values([
+    const insertedShirts = await db!.insert(shirts).values([
       {
         name: 'Beat Everybody',
         description: 'Beat Everybody shirt with bold design and message',

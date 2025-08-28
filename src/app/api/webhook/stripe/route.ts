@@ -26,6 +26,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    if (!db) {
+      console.error('Database not available for webhook processing');
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;

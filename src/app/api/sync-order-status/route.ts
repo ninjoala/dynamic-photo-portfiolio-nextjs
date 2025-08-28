@@ -10,6 +10,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!db) {
+      return NextResponse.json({ error: 'Database not available' }, { status: 503 });
+    }
+    
     const { orderId, sessionId } = await request.json();
 
     // Get the order from database
@@ -122,6 +126,10 @@ export async function POST(request: NextRequest) {
 // GET endpoint to sync all pending orders
 export async function GET() {
   try {
+    if (!db) {
+      return NextResponse.json({ error: 'Database not available' }, { status: 503 });
+    }
+    
     // const searchParams = request.nextUrl.searchParams;
     // const syncAll = searchParams.get('all') === 'true';
 

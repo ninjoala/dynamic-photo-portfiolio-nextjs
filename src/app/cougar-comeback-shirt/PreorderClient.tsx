@@ -9,7 +9,6 @@ import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 
-console.log('Stripe publishable key:', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'Set' : 'Missing');
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, {
   locale: 'en'
 });
@@ -28,10 +27,6 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Debug: Check environment variables on component mount
-  console.log('Client-side env check:');
-  console.log('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-  console.log('All env vars:', Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC')));
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();

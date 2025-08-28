@@ -5,6 +5,9 @@ import { shirts, orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 
+// Force dynamic rendering since we need live database data
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Cougar Comeback Shirt - Preorder Now',
   description: 'Limited edition Cougar Comeback shirts. Secure yours with a preorder today!',
@@ -62,6 +65,12 @@ async function syncRecentPendingOrders() {
 
 async function getActiveShirts() {
   try {
+    // Skip if database is not available (e.g., during build)
+    if (!db) {
+      console.log('Database not available, returning empty shirt list');
+      return [];
+    }
+    
     const activeShirts = await db
       .select()
       .from(shirts)
