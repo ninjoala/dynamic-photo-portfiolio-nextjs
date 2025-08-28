@@ -4,10 +4,8 @@ import * as schema from './schema';
 
 // Environment variables are automatically loaded by Next.js from .env.local
 
-// Use direct connection in production if available, otherwise use pooler
-const connectionString = process.env.NODE_ENV === 'production' && process.env.DIRECT_DATABASE_URL
-  ? process.env.DIRECT_DATABASE_URL
-  : process.env.DATABASE_URL;
+// Use pooler connection for all environments
+const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   throw new Error('DATABASE_URL is not set - check .env.local file exists');
