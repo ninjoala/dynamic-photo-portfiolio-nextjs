@@ -4,25 +4,45 @@ import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useCart } from '../../contexts/CartContext';
 
-interface OrderDetails {
+interface OrderItem {
   id: number;
   shirtName: string;
   size: string;
   quantity: number;
   totalAmount: string;
   status?: string;
+}
+
+interface OrderDetails {
+  // For single item (backward compatibility)
+  id?: number;
+  shirtName?: string;
+  size?: string;
+  quantity?: number;
+  totalAmount: string;
+  status?: string;
   paymentVerified?: boolean;
+  // For multiple items
+  items?: OrderItem[];
+  customerName?: string;
+  customerEmail?: string;
+  itemCount?: number;
 }
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const { clearCart } = useCart();
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
 
   useEffect(() => {
+    // Clear the cart on successful payment
+    clearCart();
+    
     if (sessionId) {
       // First sync the order status with Stripe
       setSyncStatus('syncing');
@@ -57,7 +77,7 @@ function SuccessContent() {
     } else {
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, clearCart]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -98,20 +118,44 @@ function SuccessContent() {
             <div className="space-y-4">
               <div className="bg-gray-50 rounded-lg p-4 text-left">
                 <h2 className="font-semibold text-gray-900 mb-2">Order Summary</h2>
-                <div className="space-y-1 text-sm">
-                  <p className="text-gray-600">
-                    <span className="font-medium">Item:</span> {orderDetails.shirtName}
-                  </p>
-                  <p className="text-gray-600">
-                    <span className="font-medium">Size:</span> {orderDetails.size}
-                  </p>
-                  <p className="text-gray-600">
-                    <span className="font-medium">Quantity:</span> {orderDetails.quantity}
-                  </p>
-                  <p className="text-gray-600">
-                    <span className="font-medium">Total:</span> ${orderDetails.totalAmount}
-                  </p>
-                </div>
+                {orderDetails.items ? (
+                  // Multiple items
+                  <div className="space-y-3">
+                    {orderDetails.items.map((item, index) => (
+                      <div key={item.id} className="border-b border-gray-200 pb-2 last:border-0">
+                        <div className="space-y-1 text-sm">
+                          <p className="text-gray-600">
+                            <span className="font-medium">Item {index + 1}:</span> {item.shirtName}
+                          </p>
+                          <p className="text-gray-600 ml-4">
+                            Size: {item.size} | Quantity: {item.quantity} | Subtotal: ${item.totalAmount}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="pt-2 border-t border-gray-300">
+                      <p className="text-gray-900 font-semibold">
+                        Total ({orderDetails.itemCount} items): ${orderDetails.totalAmount}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  // Single item (backward compatibility)
+                  <div className="space-y-1 text-sm">
+                    <p className="text-gray-600">
+                      <span className="font-medium">Item:</span> {orderDetails.shirtName}
+                    </p>
+                    <p className="text-gray-600">
+                      <span className="font-medium">Size:</span> {orderDetails.size}
+                    </p>
+                    <p className="text-gray-600">
+                      <span className="font-medium">Quantity:</span> {orderDetails.quantity}
+                    </p>
+                    <p className="text-gray-600">
+                      <span className="font-medium">Total:</span> ${orderDetails.totalAmount}
+                    </p>
+                  </div>
+                )}
               </div>
               
               {syncStatus === 'synced' && orderDetails.paymentVerified && (

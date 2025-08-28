@@ -2,32 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { loadStripe } from '@stripe/stripe-js';
 import type { Shirt } from '@/db/schema';
 import { Button } from '../../../components/ui/button';
-import { Input } from '../../../components/ui/input';
-import { Label } from '../../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, {
-  locale: 'en'
-});
+import { useCart } from '../contexts/CartContext';
+import { CartIcon } from '../components/CartIcon';
+import { CartDrawer } from '../components/CartDrawer';
+import { ShoppingBag, ShoppingCart } from 'lucide-react';
 
 interface PreorderClientProps {
   shirts: Shirt[];
 }
 
 export default function PreorderClient({ shirts }: PreorderClientProps) {
+  const { addItem, getTotalItems } = useCart();
   const [selectedShirt, setSelectedShirt] = useState<Shirt | null>(shirts[0] || null);
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
-  const [email, setEmail] = useState('');
-  const [confirmEmail, setConfirmEmail] = useState('');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showAddedMessage, setShowAddedMessage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  
+  const cartItemCount = getTotalItems();
 
   // Handle keyboard events for modal
   useEffect(() => {
@@ -59,80 +55,42 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
     setSelectedImage({ url, alt });
   };
 
-  const handleCheckout = async (e: React.FormEvent) => {
+  const handleAddToCart = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
+    
     if (!selectedShirt) {
-      setError('Please select a shirt');
-      setLoading(false);
       return;
     }
 
-    if (email !== confirmEmail) {
-      setError('Email addresses do not match');
-      setLoading(false);
-      return;
-    }
+    addItem({
+      shirtId: selectedShirt.id,
+      name: selectedShirt.name,
+      size: selectedSize,
+      quantity: quantity,
+      price: selectedShirt.price,
+      images: selectedShirt.images || []
+    });
 
-    try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          shirtId: selectedShirt.id,
-          size: selectedSize,
-          quantity,
-          email,
-          name,
-          phone,
-        }),
-      });
+    // Show success message
+    setShowAddedMessage(true);
+    setTimeout(() => setShowAddedMessage(false), 2000);
 
-      const session = await response.json();
-      console.log('Checkout session response:', session);
-      
-      if (session.error) {
-        throw new Error(session.error);
-      }
-      
-      if (!session.sessionId) {
-        throw new Error('No session ID received from server');
-      }
-      
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error('Stripe failed to load - check your publishable key');
-      
-      console.log('Redirecting to checkout with session ID:', session.sessionId);
-      
-      // Try direct window navigation as fallback
-      if (session.url) {
-        console.log('Using direct navigation to:', session.url);
-        window.location.href = session.url;
-        return;
-      }
-      
-      const { error: stripeError } = await stripe.redirectToCheckout({
-        sessionId: session.sessionId,
-      });
-      
-      if (stripeError) {
-        console.error('Stripe redirect error:', stripeError);
-        throw new Error(`Stripe error: ${stripeError.message}`);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-      setLoading(false);
-    }
+    // Reset quantity
+    setQuantity(1);
   };
 
   const totalPrice = selectedShirt ? (parseFloat(selectedShirt.price) * quantity).toFixed(2) : '0.00';
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{background: 'linear-gradient(to bottom right, #0f2942, #1a3a52, #0f2942)'}}>
+      {/* Cart Drawer */}
+      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+      
+      {/* Cart Icon - Fixed position in top right */}
+      <div className="fixed top-4 right-4 z-40">
+        <CartIcon onClick={() => setCartOpen(true)} />
+      </div>
+
       {/* Background decorative elements */}
       <div className="absolute inset-0">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl" style={{backgroundColor: '#b4a36b33'}}></div>
@@ -287,66 +245,98 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
             </div>
 
             <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8 mt-12">
-            <h2 className="text-3xl font-bold text-white mb-8" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Order Details</h2>
-            <form onSubmit={handleCheckout} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Your Name:</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
-                />
+            <h2 className="text-3xl font-bold text-white mb-8" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Add to Cart</h2>
+            
+            {/* Preview of what's being added */}
+            {selectedShirt && !showAddedMessage && (
+              <div className="bg-white/20 backdrop-blur-md rounded-xl p-6 mb-6 border-2 shadow-xl" style={{ borderColor: 'rgba(180, 163, 107, 0.4)' }}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-white" style={{textShadow: '0 2px 4px rgba(0,0,0,0.6)'}}>
+                    You're Adding:
+                  </h3>
+                  <div className="px-3 py-1 rounded-full text-sm font-bold" style={{ 
+                    backgroundColor: '#b4a36b',
+                    color: '#0f2942'
+                  }}>
+                    Preview
+                  </div>
+                </div>
+                
+                <div className="bg-black/20 rounded-lg p-4">
+                  <div className="flex items-center gap-4">
+                    {selectedShirt.images && selectedShirt.images[0] && (
+                      <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2" style={{ borderColor: '#b4a36b' }}>
+                        <Image
+                          src={selectedShirt.images[0]}
+                          alt={selectedShirt.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-bold text-white text-xl mb-2" style={{textShadow: '0 1px 2px rgba(0,0,0,0.8)'}}>
+                        {selectedShirt.name}
+                      </h4>
+                      <div className="flex items-center gap-4 mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white/80 font-medium">Size:</span>
+                          <span className="px-3 py-1 rounded-full text-lg font-bold" style={{ 
+                            backgroundColor: '#b4a36b',
+                            color: '#0f2942'
+                          }}>
+                            {selectedSize}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white/80 font-medium">Qty:</span>
+                          <span className="px-3 py-1 rounded-full text-lg font-bold" style={{ 
+                            backgroundColor: '#b4a36b',
+                            color: '#0f2942'
+                          }}>
+                            {quantity}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-white/70 font-medium">Item Total:</span>
+                        <span className="text-2xl font-bold text-white" style={{textShadow: '0 2px 4px rgba(180, 163, 107, 0.6)'}}>
+                          ${(parseFloat(selectedShirt.price) * quantity).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Email Address:</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmEmail" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Confirm Email Address:</Label>
-                <Input
-                  id="confirmEmail"
-                  type="email"
-                  required
-                  value={confirmEmail}
-                  onChange={(e) => setConfirmEmail(e.target.value)}
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Phone Number:</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(555) 123-4567"
-                />
-              </div>
-
+            )}
+            
+            <form onSubmit={handleAddToCart} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="size" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Size:</Label>
+                  <label htmlFor="size" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Size:</label>
                   <Select value={selectedSize} onValueChange={setSelectedSize}>
-                    <SelectTrigger>
+                    <SelectTrigger 
+                      className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-white/50 hover:bg-white/15 transition-colors"
+                      style={{
+                        borderColor: 'rgba(180, 163, 107, 0.5)'
+                      }}
+                    >
                       <SelectValue placeholder="Select size" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent 
+                      className="border-2"
+                      style={{
+                        backgroundColor: '#1a3a52',
+                        borderColor: '#b4a36b'
+                      }}
+                    >
                       {selectedShirt?.sizes?.map((size) => (
-                        <SelectItem key={size} value={size}>
-                          {size}
+                        <SelectItem 
+                          key={size} 
+                          value={size}
+                          className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer"
+                        >
+                          <span className="font-bold">{size}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -354,59 +344,82 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="quantity" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Quantity:</Label>
-                  <Input
+                  <label htmlFor="quantity" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Quantity:</label>
+                  <input
                     id="quantity"
                     type="number"
                     min="1"
                     max="10"
                     value={quantity}
                     onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                    className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/30 rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
                   />
                 </div>
               </div>
 
               <div className="border-t border-white/20 pt-6">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-xl font-semibold text-white drop-shadow-md">Total:</span>
-                  <span className="text-3xl font-bold drop-shadow-lg" style={{color: '#b4a36b'}}>${totalPrice}</span>
-                </div>
-
-                {error && (
-                  <div className="mb-6 p-4 rounded-lg backdrop-blur-sm" style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                    borderColor: 'rgba(248, 113, 113, 0.5)',
+                {showAddedMessage && (
+                  <div className="mb-4 p-4 rounded-lg backdrop-blur-sm animate-pulse" style={{
+                    backgroundColor: 'rgba(180, 163, 107, 0.2)',
+                    borderColor: 'rgba(180, 163, 107, 0.5)',
                     border: '1px solid',
-                    color: '#fecaca'
+                    color: '#b4a36b'
                   }}>
-                    {error}
+                    <div className="flex items-center justify-center gap-2">
+                      <ShoppingBag className="w-5 h-5" />
+                      <span className="font-semibold">Added to cart!</span>
+                    </div>
                   </div>
                 )}
 
-                <Button
-                  type="submit"
-                  disabled={loading || !selectedShirt}
-                  className="w-full font-bold text-lg shadow-2xl border-2"
-                  style={{
-                    background: 'linear-gradient(to right, #b4a36b, #c4b47b)',
-                    color: '#0f2942',
-                    borderColor: 'rgba(180, 163, 107, 0.5)'
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #a49358, #b4a36b)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #b4a36b, #c4b47b)';
-                  }}
-                  size="lg"
-                >
-                  {loading ? 'Processing...' : 'Proceed to Checkout'}
-                </Button>
+                <div className="space-y-3">
+                  <Button
+                    type="submit"
+                    disabled={!selectedShirt}
+                    className="w-full font-bold text-lg shadow-2xl border-2 flex items-center justify-center gap-3"
+                    style={{
+                      background: 'linear-gradient(to right, #b4a36b, #c4b47b)',
+                      color: '#0f2942',
+                      borderColor: 'rgba(180, 163, 107, 0.5)'
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #a49358, #b4a36b)';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #b4a36b, #c4b47b)';
+                    }}
+                    size="lg"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    Add to Cart
+                  </Button>
 
-                <p className="text-sm mt-6 text-center leading-relaxed" style={{color: 'rgba(180, 163, 107, 0.7)'}}>
-                  You will be redirected to Stripe for secure payment processing.<br />
-                  A receipt will be emailed to you after payment.
-                </p>
+                  <Button
+                    type="button"
+                    onClick={() => setCartOpen(true)}
+                    className="w-full font-bold text-lg shadow-xl border-2 flex items-center justify-center gap-3 relative"
+                    style={{
+                      background: 'rgba(180, 163, 107, 0.1)',
+                      color: '#b4a36b',
+                      borderColor: '#b4a36b'
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = 'rgba(180, 163, 107, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = 'rgba(180, 163, 107, 0.1)';
+                    }}
+                    size="lg"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    View Cart
+                    {cartItemCount > 0 && (
+                      <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-sm font-bold">
+                        {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'}
+                      </span>
+                    )}
+                  </Button>
+                </div>
               </div>
             </form>
             </div>

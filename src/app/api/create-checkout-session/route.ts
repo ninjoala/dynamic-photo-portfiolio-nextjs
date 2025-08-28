@@ -14,19 +14,95 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database not available' }, { status: 503 });
     }
     
-    const { shirtId, size, quantity, email, name, phone } = await request.json();
+    const body = await request.json();
+    
+    // Check if it's a multi-item cart checkout or single item
+    const isCartCheckout = body.items && Array.isArray(body.items);
+    
+    let lineItems: any[] = [];
+    let orderItems: any[] = [];
+    let totalAmount = 0;
+    let customerEmail = body.email || '';
+    let customerName = body.name || '';
+    let customerPhone = body.phone || '';
+    
+    if (isCartCheckout) {
+      // Handle multiple cart items
+      for (const item of body.items) {
+        const [shirt] = await db
+          .select()
+          .from(shirts)
+          .where(eq(shirts.id, item.shirtId))
+          .limit(1);
+        
+        if (!shirt) {
+          return NextResponse.json({ error: `Shirt with ID ${item.shirtId} not found` }, { status: 404 });
+        }
+        
+        const itemTotal = parseFloat(shirt.price) * item.quantity;
+        totalAmount += itemTotal;
+        
+        lineItems.push({
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `${shirt.name} - Size ${item.size}`,
+              description: shirt.description || undefined,
+              images: shirt.images?.length ? [shirt.images[0]] : undefined,
+            },
+            unit_amount: Math.round(parseFloat(shirt.price) * 100),
+          },
+          quantity: item.quantity,
+        });
+        
+        orderItems.push({
+          shirtId: item.shirtId,
+          size: item.size,
+          quantity: item.quantity,
+          price: shirt.price,
+          name: shirt.name
+        });
+      }
+    } else {
+      // Handle single item (backward compatibility)
+      const { shirtId, size, quantity } = body;
+      customerEmail = body.email;
+      customerName = body.name;
+      customerPhone = body.phone;
+      
+      const [shirt] = await db
+        .select()
+        .from(shirts)
+        .where(eq(shirts.id, shirtId))
+        .limit(1);
 
-    const [shirt] = await db
-      .select()
-      .from(shirts)
-      .where(eq(shirts.id, shirtId))
-      .limit(1);
+      if (!shirt) {
+        return NextResponse.json({ error: 'Shirt not found' }, { status: 404 });
+      }
 
-    if (!shirt) {
-      return NextResponse.json({ error: 'Shirt not found' }, { status: 404 });
+      totalAmount = parseFloat(shirt.price) * quantity;
+      
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `${shirt.name} - Size ${size}`,
+            description: shirt.description || undefined,
+            images: shirt.images?.length ? [shirt.images[0]] : undefined,
+          },
+          unit_amount: Math.round(parseFloat(shirt.price) * 100),
+        },
+        quantity,
+      });
+      
+      orderItems.push({
+        shirtId,
+        size,
+        quantity,
+        price: shirt.price,
+        name: shirt.name
+      });
     }
-
-    const totalAmount = parseFloat(shirt.price) * quantity;
 
     // Get base URL with robust fallback logic
     const getBaseUrl = () => {
@@ -73,49 +149,37 @@ export async function POST(request: NextRequest) {
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `${shirt.name} - Size ${size}`,
-              description: shirt.description || undefined,
-              images: shirt.images?.length ? [shirt.images[0]] : undefined,
-            },
-            unit_amount: Math.round(parseFloat(shirt.price) * 100),
-          },
-          quantity,
-        },
-      ],
+      line_items: lineItems,
       mode: 'payment',
       success_url: `${baseUrl}/cougar-comeback-shirt/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/cougar-comeback-shirt`,
-      customer_email: email,
+      customer_email: customerEmail,
       shipping_address_collection: {
         allowed_countries: ['US'],
       },
       metadata: {
-        shirtId: shirtId.toString(),
-        size,
-        quantity: quantity.toString(),
-        customerName: name,
+        customerName: customerName,
+        itemCount: orderItems.length.toString(),
+        orderType: isCartCheckout ? 'cart' : 'single'
       },
     });
 
-    await db
-      .insert(orders)
-      .values({
-        email,
-        name,
-        phone,
-        shirtId,
-        size,
-        quantity,
-        totalAmount: totalAmount.toFixed(2),
-        stripeSessionId: session.id,
-        status: 'pending',
-      })
-      .returning();
+    // Insert multiple order records (one for each cart item)
+    for (const item of orderItems) {
+      await db
+        .insert(orders)
+        .values({
+          email: customerEmail,
+          name: customerName,
+          phone: customerPhone,
+          shirtId: item.shirtId,
+          size: item.size,
+          quantity: item.quantity,
+          totalAmount: (parseFloat(item.price) * item.quantity).toFixed(2),
+          stripeSessionId: session.id,
+          status: 'pending',
+        });
+    }
 
     return NextResponse.json({ 
       sessionId: session.id,
