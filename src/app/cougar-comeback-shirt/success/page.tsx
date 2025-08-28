@@ -100,9 +100,6 @@ function SuccessContent() {
                 <h2 className="font-semibold text-gray-900 mb-2">Order Summary</h2>
                 <div className="space-y-1 text-sm">
                   <p className="text-gray-600">
-                    <span className="font-medium">Order ID:</span> {orderDetails.id}
-                  </p>
-                  <p className="text-gray-600">
                     <span className="font-medium">Item:</span> {orderDetails.shirtName}
                   </p>
                   <p className="text-gray-600">
