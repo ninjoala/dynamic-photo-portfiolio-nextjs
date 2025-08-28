@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
@@ -26,7 +25,6 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
-  const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, getTotal } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

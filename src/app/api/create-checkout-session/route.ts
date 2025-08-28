@@ -19,9 +19,25 @@ export async function POST(request: NextRequest) {
     // Check if it's a multi-item cart checkout or single item
     const isCartCheckout = body.items && Array.isArray(body.items);
     
-    let lineItems: any[] = [];
-    let orderItems: any[] = [];
-    let totalAmount = 0;
+    const lineItems: Array<{
+      price_data: {
+        currency: string;
+        product_data: {
+          name: string;
+          description?: string;
+          images?: string[];
+        };
+        unit_amount: number;
+      };
+      quantity: number;
+    }> = [];
+    const orderItems: Array<{
+      shirtId: number;
+      size: string;
+      quantity: number;
+      price: string;
+      name: string;
+    }> = [];
     let customerEmail = body.email || '';
     let customerName = body.name || '';
     let customerPhone = body.phone || '';
@@ -39,8 +55,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: `Shirt with ID ${item.shirtId} not found` }, { status: 404 });
         }
         
-        const itemTotal = parseFloat(shirt.price) * item.quantity;
-        totalAmount += itemTotal;
+        // Calculate item total for this specific item (used for individual order records)
         
         lineItems.push({
           price_data: {
@@ -80,7 +95,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Shirt not found' }, { status: 404 });
       }
 
-      totalAmount = parseFloat(shirt.price) * quantity;
       
       lineItems.push({
         price_data: {

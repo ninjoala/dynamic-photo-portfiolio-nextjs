@@ -16,7 +16,7 @@ interface PreorderClientProps {
 
 export default function PreorderClient({ shirts }: PreorderClientProps) {
   const { addItem, getTotalItems } = useCart();
-  const [selectedShirt, setSelectedShirt] = useState<Shirt | null>(shirts[0] || null);
+  const [selectedShirt, setSelectedShirt] = useState<Shirt | null>(null);
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
   const [showAddedMessage, setShowAddedMessage] = useState(false);
@@ -79,7 +79,6 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
     setQuantity(1);
   };
 
-  const totalPrice = selectedShirt ? (parseFloat(selectedShirt.price) * quantity).toFixed(2) : '0.00';
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{background: 'linear-gradient(to bottom right, #0f2942, #1a3a52, #0f2942)'}}>
@@ -127,17 +126,24 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                     {shirts.map((shirt) => (
                       <div key={shirt.id}>
                         <div
-                          className={`border-2 rounded-xl p-6 cursor-pointer transition-all duration-300 ${
+                          className={`border-4 rounded-xl p-6 cursor-pointer transition-all duration-300 relative ${
                             selectedShirt?.id === shirt.id
-                              ? 'shadow-xl scale-105'
-                              : 'border-white/30 bg-white/5 hover:bg-white/10'
+                              ? 'shadow-2xl scale-105 ring-4 ring-yellow-400/50'
+                              : 'border-white/30 bg-white/5 hover:bg-white/10 hover:scale-102'
                           }`}
                           style={selectedShirt?.id === shirt.id ? {
-                            borderColor: '#b4a36b',
-                            backgroundColor: 'rgba(180, 163, 107, 0.1)'
+                            borderColor: '#fbbf24', // yellow-400
+                            backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                            boxShadow: '0 0 30px rgba(251, 191, 36, 0.4)'
                           } : {}}
                           onClick={() => setSelectedShirt(shirt)}
                         >
+                          {/* HUGE selection indicator */}
+                          {selectedShirt?.id === shirt.id && (
+                            <div className="absolute -top-3 -right-3 bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-lg shadow-xl animate-pulse">
+                              ✓ SELECTED
+                            </div>
+                          )}
                           <div className="flex items-start space-x-4">
                           {shirt.images && shirt.images.length > 0 && (
                             <div className="relative w-24 h-24 flex-shrink-0">
@@ -161,10 +167,10 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                         </div>
                         </div>
 
-                        {/* Product images that slide out beneath selected shirt */}
-                        {selectedShirt?.id === shirt.id && shirt.images && shirt.images.length > 0 && (
+                        {/* Product images - always show on mobile */}
+                        {shirt.images && shirt.images.length > 0 && (
                           <div className="lg:hidden overflow-hidden">
-                            <div className="mt-4 animate-slide-down">
+                            <div className="mt-4">
                               <div className="bg-white/15 backdrop-blur-sm rounded-xl border border-white/20 p-4">
                                 <h4 className="text-lg font-semibold text-white mb-4 text-center drop-shadow-md">Product Images</h4>
                                 <div className="grid grid-cols-2 gap-4">
@@ -207,41 +213,73 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 </div>
               </div>
 
-              {/* Desktop product images - only show on lg screens and up */}
-              {selectedShirt && selectedShirt.images && selectedShirt.images.length > 0 && (
-                <div className="hidden lg:block bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
-                  <h3 className="text-3xl font-bold text-white mb-6" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>Product Images</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    {selectedShirt.images.map((image, index) => (
-                      <div key={index} className="space-y-3">
-                        <p className="text-lg font-semibold text-white text-center drop-shadow-md">
-                          {index === 0 ? 'Front' : 'Back'}
-                        </p>
-                        <div 
-                          className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/30 shadow-2xl hover:scale-105 transition-transform duration-300 cursor-pointer"
-                          onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = '#b4a36b'}
-                          onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255, 255, 255, 0.3)'}
-                          onClick={() => handleImageClick(image, `${selectedShirt.name} - ${index === 0 ? 'Front' : 'Back'}`)}
-                        >
-                          <Image
-                            src={image}
-                            alt={`${selectedShirt.name} - ${index === 0 ? 'Front' : 'Back'}`}
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center">
-                            <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                              <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
+              {/* Desktop product images - show all shirts */}
+              <div className="hidden lg:block bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8">
+                <h3 className="text-3xl font-bold text-white mb-6" style={{textShadow: '0 3px 6px rgba(0,0,0,0.7)'}}>All Product Images</h3>
+                <div className="space-y-8">
+                  {shirts.map((shirt) => (
+                    <div key={shirt.id} className="space-y-4">
+                      {/* Simple shirt name */}
+                      <div className="flex items-center gap-4">
+                        <h4 className="text-2xl font-bold text-white" style={{textShadow: '0 2px 4px rgba(0,0,0,0.8)'}}>
+                          {shirt.name}
+                        </h4>
+                        {selectedShirt?.id === shirt.id && (
+                          <span className="text-sm font-bold px-3 py-1 rounded-full" style={{
+                            backgroundColor: '#b4a36b',
+                            color: '#0f2942'
+                          }}>
+                            Selected
+                          </span>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                      
+                      {/* Images grid */}
+                      {shirt.images && shirt.images.length > 0 && (
+                        <div className="grid grid-cols-2 gap-6">
+                          {shirt.images.map((image, index) => (
+                            <div key={index} className="space-y-3">
+                              <p className="text-lg font-semibold text-white text-center drop-shadow-md">
+                                {index === 0 ? 'Front' : 'Back'}
+                              </p>
+                              <div 
+                                className={`relative aspect-square rounded-xl overflow-hidden border-2 shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer ${
+                                  selectedShirt?.id === shirt.id 
+                                    ? 'border-yellow-400' 
+                                    : 'border-white/30'
+                                }`}
+                                onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = '#b4a36b'}
+                                onMouseLeave={(e) => {
+                                  if (selectedShirt?.id === shirt.id) {
+                                    (e.currentTarget as HTMLElement).style.borderColor = '#fbbf24'; // yellow-400
+                                  } else {
+                                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                                  }
+                                }}
+                                onClick={() => handleImageClick(image, `${shirt.name} - ${index === 0 ? 'Front' : 'Back'}`)}
+                              >
+                                <Image
+                                  src={image}
+                                  alt={`${shirt.name} - ${index === 0 ? 'Front' : 'Back'}`}
+                                  fill
+                                  className="object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center">
+                                  <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                    <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="bg-white/20 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl p-8 mt-12">
@@ -252,7 +290,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
               <div className="bg-white/20 backdrop-blur-md rounded-xl p-6 mb-6 border-2 shadow-xl" style={{ borderColor: 'rgba(180, 163, 107, 0.4)' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-white" style={{textShadow: '0 2px 4px rgba(0,0,0,0.6)'}}>
-                    You're Adding:
+                    You&apos;re Adding:
                   </h3>
                   <div className="px-3 py-1 rounded-full text-sm font-bold" style={{ 
                     backgroundColor: '#b4a36b',
