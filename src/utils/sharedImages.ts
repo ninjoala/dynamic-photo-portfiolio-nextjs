@@ -35,9 +35,16 @@ export async function fetchSharedImages(): Promise<SharedImageData> {
 
 export async function getProfileImage(): Promise<string | null> {
   try {
-    // Use the main images.json file instead of shared-specific file
-    const { fetchImageData } = await import('./fetchImageData');
-    const mainData = await fetchImageData('default');
+    // Read the main images.json file directly from filesystem (server-side)
+    const filePath = path.join(process.cwd(), 'public/data/images.json');
+    
+    if (!fs.existsSync(filePath)) {
+      console.warn('images.json file not found at:', filePath);
+      return null;
+    }
+    
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const mainData = JSON.parse(fileContent);
     
     // Look for Nick's specific profile image first
     const nickProfileImage = mainData.images.find(img => 
