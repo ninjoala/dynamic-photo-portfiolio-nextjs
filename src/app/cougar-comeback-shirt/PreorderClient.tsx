@@ -17,7 +17,7 @@ interface PreorderClientProps {
 export default function PreorderClient({ shirts }: PreorderClientProps) {
   const { addItem, getTotalItems } = useCart();
   const [selectedShirt, setSelectedShirt] = useState<Shirt | null>(null);
-  const [selectedSize, setSelectedSize] = useState('M');
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [quantityInput, setQuantityInput] = useState('1');
   const [showAddedMessage, setShowAddedMessage] = useState(false);
@@ -59,7 +59,7 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
   const handleAddToCart = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedShirt) {
+    if (!selectedShirt || !selectedSize) {
       return;
     }
 
@@ -322,10 +322,10 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                         <div className="flex items-center gap-2">
                           <span className="text-white/80 font-medium text-sm">Size:</span>
                           <span className="px-2 py-1 sm:px-3 sm:py-1 rounded-full text-sm sm:text-lg font-bold" style={{ 
-                            backgroundColor: '#b4a36b',
-                            color: '#0f2942'
+                            backgroundColor: selectedSize ? '#b4a36b' : 'rgba(239, 68, 68, 0.5)',
+                            color: selectedSize ? '#0f2942' : '#fff'
                           }}>
-                            {selectedSize}
+                            {selectedSize || 'Select'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -354,14 +354,14 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="size" className="text-white font-bold text-lg tracking-wide" style={{textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>Size:</label>
-                  <Select value={selectedSize} onValueChange={setSelectedSize}>
+                  <Select value={selectedSize || ''} onValueChange={setSelectedSize}>
                     <SelectTrigger 
                       className="w-full px-3 py-2 bg-white/10 backdrop-blur-sm border-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-white/50 hover:bg-white/15 transition-colors"
                       style={{
-                        borderColor: 'rgba(180, 163, 107, 0.5)'
+                        borderColor: selectedSize ? 'rgba(180, 163, 107, 0.5)' : 'rgba(239, 68, 68, 0.5)'
                       }}
                     >
-                      <SelectValue placeholder="Select size" />
+                      <SelectValue placeholder="Select size (Required)" />
                     </SelectTrigger>
                     <SelectContent 
                       className="border-2"
@@ -440,25 +440,43 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
                 )}
 
                 <div className="space-y-3">
+                  {!selectedSize && selectedShirt && (
+                    <div className="text-center p-2 rounded-lg" style={{
+                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)'
+                    }}>
+                      <span className="text-red-300 text-sm font-medium">Please select a size to continue</span>
+                    </div>
+                  )}
+                  
                   <Button
                     type="submit"
-                    disabled={!selectedShirt}
+                    disabled={!selectedShirt || !selectedSize}
                     className="w-full font-bold text-lg shadow-2xl border-2 flex items-center justify-center gap-3"
                     style={{
-                      background: 'linear-gradient(to right, #b4a36b, #c4b47b)',
-                      color: '#0f2942',
-                      borderColor: 'rgba(180, 163, 107, 0.5)'
+                      background: (!selectedShirt || !selectedSize) 
+                        ? 'rgba(100, 100, 100, 0.3)' 
+                        : 'linear-gradient(to right, #b4a36b, #c4b47b)',
+                      color: (!selectedShirt || !selectedSize) ? '#999' : '#0f2942',
+                      borderColor: (!selectedShirt || !selectedSize) 
+                        ? 'rgba(100, 100, 100, 0.3)' 
+                        : 'rgba(180, 163, 107, 0.5)',
+                      cursor: (!selectedShirt || !selectedSize) ? 'not-allowed' : 'pointer'
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #a49358, #b4a36b)';
+                      if (selectedShirt && selectedSize) {
+                        (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #a49358, #b4a36b)';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #b4a36b, #c4b47b)';
+                      if (selectedShirt && selectedSize) {
+                        (e.currentTarget as HTMLElement).style.background = 'linear-gradient(to right, #b4a36b, #c4b47b)';
+                      }
                     }}
                     size="lg"
                   >
                     <ShoppingBag className="w-5 h-5" />
-                    Add to Cart
+                    {!selectedShirt ? 'Select a Shirt' : !selectedSize ? 'Select Size First' : 'Add to Cart'}
                   </Button>
 
                   <Button
