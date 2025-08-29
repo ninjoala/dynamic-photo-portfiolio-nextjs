@@ -54,8 +54,22 @@ async function syncRecentPendingOrders() {
           console.log(`Synced order ${order.id}: confirmed`);
         }
       } catch (error) {
-        // Silently continue - don't break the page load
-        console.error(`Failed to sync order ${order.id}:`, error);
+        // If the session doesn't exist (404), mark the order as invalid/expired
+        const stripeError = error as { statusCode?: number; code?: string; message?: string };
+        if (stripeError?.statusCode === 404 || stripeError?.code === 'resource_missing') {
+          await db
+            .update(orders)
+            .set({
+              status: 'invalid',
+              updatedAt: new Date(),
+            })
+            .where(eq(orders.id, order.id));
+          
+          console.log(`Marked order ${order.id} as invalid (session not found)`);
+        } else {
+          // For other errors, log but don't break the page load
+          console.error(`Failed to sync order ${order.id}:`, stripeError.message || stripeError);
+        }
       }
     }
   } catch (error) {
