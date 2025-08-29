@@ -110,6 +110,25 @@ export default function PreorderClient({ shirts }: PreorderClientProps) {
           <p className="text-xl font-semibold italic" style={{color: '#b4a36b', textShadow: '0 2px 4px rgba(0,0,0,0.7)'}}>
             Wear the Win. Remember the Comeback.
           </p>
+          
+          {/* Preorder Notice */}
+          <div className="mt-8 mx-auto max-w-2xl">
+            <div className="bg-yellow-400/20 backdrop-blur-lg rounded-xl border-2 border-yellow-400/50 p-6 shadow-xl">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <h3 className="text-xl font-bold text-yellow-400">PREORDER INFORMATION</h3>
+              </div>
+              <p className="text-white font-semibold text-lg leading-relaxed">
+                This is a <span className="text-yellow-400">PREORDER FORM</span>. 
+                Orders will be placed based on demand and distributed at Newnan football games.
+              </p>
+              <p className="text-white/90 font-bold text-lg mt-2">
+                <span className="text-yellow-400">NO SHIPPING</span> - Local pickup only at games!
+              </p>
+            </div>
+          </div>
         </div>
 
         {shirts.length === 0 ? (
