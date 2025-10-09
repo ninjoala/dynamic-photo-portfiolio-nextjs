@@ -1,4 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
+// Unused imports commented out since sale is concluded
+// import Stripe from 'stripe';
+// import { db } from '@/db';
+// import { shirts, orders } from '@/db/schema';
+// import { eq } from 'drizzle-orm';
+
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+//   apiVersion: '2025-07-30.basil',
+// });
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: NextRequest) {
+  // Sale has concluded - disable all new orders
+  return NextResponse.json(
+    { error: 'This sale has concluded. Thank you for your interest!' },
+    { status: 410 } // 410 Gone - indicates the resource is no longer available
+  );
+}
+
+// Original implementation commented out below
+/*
 import Stripe from 'stripe';
 import { db } from '@/db';
 import { shirts, orders } from '@/db/schema';
@@ -8,7 +29,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-11-20.acacia',
 });
 
-export async function POST(request: NextRequest) {
+export async function POST_DISABLED(request: NextRequest) {
   try {
     const { shirtId, size, quantity, email, name, phone } = await request.json();
 
@@ -22,12 +43,59 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Shirt not found' }, { status: 404 });
     }
 
+<<<<<<< Updated upstream
     const totalAmount = parseFloat(shirt.price) * quantity;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
+=======
+    const body = await request.json();
+
+    // Check if it's a multi-item cart checkout or single item
+    const isCartCheckout = body.items && Array.isArray(body.items);
+    
+    const lineItems: Array<{
+      price_data: {
+        currency: string;
+        product_data: {
+          name: string;
+          description?: string;
+          images?: string[];
+        };
+        unit_amount: number;
+      };
+      quantity: number;
+    }> = [];
+    const orderItems: Array<{
+      shirtId: number;
+      size: string;
+      quantity: number;
+      price: string;
+      name: string;
+    }> = [];
+    let customerEmail = body.email || '';
+    let customerName = body.name || '';
+    let customerPhone = body.phone || '';
+    
+    if (isCartCheckout) {
+      // Handle multiple cart items
+      for (const item of body.items) {
+        const [shirt] = await db
+          .select()
+          .from(shirts)
+          .where(eq(shirts.id, item.shirtId))
+          .limit(1);
+        
+        if (!shirt) {
+          return NextResponse.json({ error: `Shirt with ID ${item.shirtId} not found` }, { status: 404 });
+        }
+        
+        // Calculate item total for this specific item (used for individual order records)
+        
+        lineItems.push({
+>>>>>>> Stashed changes
           price_data: {
             currency: 'usd',
             product_data: {
@@ -82,3 +150,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+*/
