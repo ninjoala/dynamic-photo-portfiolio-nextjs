@@ -1,4 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
+// Unused imports commented out since sale is concluded
+// import Stripe from 'stripe';
+// import { db } from '@/db';
+// import { shirts, orders } from '@/db/schema';
+// import { eq } from 'drizzle-orm';
+
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+//   apiVersion: '2025-07-30.basil',
+// });
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: NextRequest) {
+  // Sale has concluded - disable all new orders
+  return NextResponse.json(
+    { error: 'This sale has concluded. Thank you for your interest!' },
+    { status: 410 } // 410 Gone - indicates the resource is no longer available
+  );
+}
+
+// Original implementation commented out below
+/*
 import Stripe from 'stripe';
 import { db } from '@/db';
 import { shirts, orders } from '@/db/schema';
@@ -8,14 +29,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-07-30.basil',
 });
 
-export async function POST(request: NextRequest) {
+export async function POST_DISABLED(request: NextRequest) {
   try {
     if (!db) {
       return NextResponse.json({ error: 'Database not available' }, { status: 503 });
     }
-    
+
     const body = await request.json();
-    
+
     // Check if it's a multi-item cart checkout or single item
     const isCartCheckout = body.items && Array.isArray(body.items);
     
@@ -56,7 +77,7 @@ export async function POST(request: NextRequest) {
         }
         
         // Calculate item total for this specific item (used for individual order records)
-        
+
         lineItems.push({
           price_data: {
             currency: 'usd',
@@ -207,3 +228,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+*/

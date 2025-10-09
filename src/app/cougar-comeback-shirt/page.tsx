@@ -1,9 +1,11 @@
 import { Metadata } from 'next';
-import PreorderClient from './PreorderClient';
-import { db } from '@/db';
-import { shirts, orders } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import Stripe from 'stripe';
+import Link from 'next/link';
+// Unused imports commented out since sale is concluded
+// import PreorderClient from './PreorderClient';
+// import { db } from '@/db';
+// import { shirts, orders } from '@/db/schema';
+// import { eq } from 'drizzle-orm';
+// import Stripe from 'stripe';
 
 // Force dynamic rendering since we need live database data
 export const dynamic = 'force-dynamic';
@@ -13,6 +15,8 @@ export const metadata: Metadata = {
   description: 'Limited edition Cougar Comeback shirts. Secure yours with a preorder today!',
 };
 
+// Disabled functions - sale concluded
+/*
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-07-30.basil',
 });
@@ -95,16 +99,34 @@ async function getActiveShirts() {
     return [];
   }
 }
+*/
 
 export default async function CougarComebackShirtPage() {
-  // Sync recent pending orders in the background (non-blocking)
-  syncRecentPendingOrders();
-  
-  const availableShirts = await getActiveShirts();
-
+  // Sale has concluded - show thank you message instead
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PreorderClient shirts={availableShirts} />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="max-w-2xl w-full text-center py-16">
+        <h1 className="text-4xl font-bold text-gray-900 mb-6">
+          Sale Concluded
+        </h1>
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <p className="text-xl text-gray-700 mb-4">
+            This sale has concluded. Thank you for supporting Nick Dobos Media!
+          </p>
+          <p className="text-gray-600">
+            We appreciate everyone who participated in this limited edition shirt sale.
+            Stay tuned for future merchandise opportunities!
+          </p>
+          <div className="mt-8">
+            <Link
+              href="/"
+              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Return to Homepage
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
