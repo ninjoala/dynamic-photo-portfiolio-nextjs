@@ -431,7 +431,7 @@ const defaultConfig: SiteConfig = {
     ]
   },
   social: {
-    instagram: "https://instagram.com/newnanphotography",
+    instagram: "https://www.instagram.com/nick_dobos_media/",
     facebook: "https://facebook.com/newnanphotography",
     pinterest: "https://pinterest.com/newnanphotography",
     twitter: "https://twitter.com/newnanphotography",

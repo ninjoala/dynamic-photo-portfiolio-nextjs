@@ -180,7 +180,7 @@ export default function ContactForm() {
             <div className="bg-white dark:bg-white rounded-lg shadow-lg p-8">
               <h2 className="text-2xl font-light mb-6 text-gray-900">Follow Us</h2>
               <div className="flex space-x-6">
-                <a href="https://www.instagram.com/nickdobos_photo/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
+                <a href="https://www.instagram.com/nick_dobos_media/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">
                   <FaInstagram className="text-3xl" />
                 </a>
                 <a href="https://www.facebook.com/p/Nicholas-Dobos-Photography-61550320203022/" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors duration-300">

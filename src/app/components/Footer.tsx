@@ -16,7 +16,7 @@ export default function Footer() {
 
   const socialLinks = [
     {
-      href: 'https://www.instagram.com/nickdobos_photo/',
+      href: 'https://www.instagram.com/nick_dobos_media/',
       icon: FaInstagram,
       label: 'Instagram',
       ariaLabel: 'Visit our Instagram profile'

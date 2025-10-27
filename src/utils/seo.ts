@@ -15,7 +15,7 @@ const baseSEO = {
   email: 'nick@nickdobosmedia.com',
   baseUrl: 'https://nickdobosmedia.com',
   social: {
-    instagram: 'https://www.instagram.com/nickdobos_photo/',
+    instagram: 'https://www.instagram.com/nick_dobos_media/',
     facebook: 'https://www.facebook.com/p/Nicholas-Dobos-Photography-61550320203022/',
     tiktok: 'https://www.tiktok.com/@nickdobosphotography'
   }
