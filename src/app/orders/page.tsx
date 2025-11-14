@@ -16,7 +16,7 @@ export default function OrdersPage() {
                             Dear George Jenkins Band Parents,
                         </h2>
                         <p className="text-xl text-gray-700 leading-relaxed">
-                            We're excited to announce that our online ordering system for band photos is currently being set up and will be available here very soon!
+                            We&apos;re excited to announce that our online ordering system for band photos is currently being set up and will be available here very soon!
                         </p>
                     </div>
 
