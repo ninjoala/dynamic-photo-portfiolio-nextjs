@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { orders, shirts } from '@/db/schema';
+import { orders, shirts, photoPackages } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     if (!db) {
       return NextResponse.json({ error: 'Database not available' }, { status: 503 });
     }
-    
+
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get('session_id');
 
@@ -17,27 +17,73 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all orders for this session (for cart support)
-    const orderItems = await db
-      .select({
-        id: orders.id,
-        size: orders.size,
-        quantity: orders.quantity,
-        totalAmount: orders.totalAmount,
-        shirtName: shirts.name,
-        status: orders.status,
-        email: orders.email,
-        name: orders.name,
-      })
+    const allOrders = await db
+      .select()
       .from(orders)
-      .leftJoin(shirts, eq(orders.shirtId, shirts.id))
       .where(eq(orders.stripeSessionId, sessionId));
 
-    if (!orderItems || orderItems.length === 0) {
+    if (!allOrders || allOrders.length === 0) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
+    // Fetch product details based on order type
+    const orderItems = await Promise.all(
+      allOrders.map(async (order) => {
+        let productName = 'Unknown Product';
+        let productDetails = {};
+
+        if (order.orderType === 'shirt') {
+          // Join with shirts table
+          const [shirt] = await db
+            .select()
+            .from(shirts)
+            .where(eq(shirts.id, order.productId))
+            .limit(1);
+
+          if (shirt) {
+            productName = shirt.name;
+            productDetails = {
+              size: order.productOptions?.size || order.size, // Support both new and legacy
+              description: shirt.description,
+            };
+          }
+        } else if (order.orderType === 'photo_package') {
+          // Join with photoPackages table
+          const [photoPackage] = await db
+            .select()
+            .from(photoPackages)
+            .where(eq(photoPackages.id, order.productId))
+            .limit(1);
+
+          if (photoPackage) {
+            productName = photoPackage.name;
+            productDetails = {
+              category: photoPackage.category,
+              description: photoPackage.description,
+              eventDate: order.productOptions?.eventDate,
+              eventLocation: order.productOptions?.eventLocation,
+              eventType: order.productOptions?.eventType,
+              additionalDetails: order.productOptions?.additionalDetails,
+            };
+          }
+        }
+
+        return {
+          id: order.id,
+          orderType: order.orderType,
+          productName,
+          quantity: order.quantity,
+          totalAmount: order.totalAmount,
+          status: order.status,
+          email: order.email,
+          name: order.name,
+          ...productDetails,
+        };
+      })
+    );
+
     // Calculate total for all items
-    const grandTotal = orderItems.reduce((sum, item) => 
+    const grandTotal = orderItems.reduce((sum, item) =>
       sum + parseFloat(item.totalAmount), 0
     ).toFixed(2);
 
