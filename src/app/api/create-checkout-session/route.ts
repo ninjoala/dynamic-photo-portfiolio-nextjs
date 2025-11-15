@@ -66,7 +66,10 @@ export async function POST(request: NextRequest) {
             .limit(1);
 
           if (!shirt) {
-            return NextResponse.json({ error: `Shirt with ID ${item.productId || item.shirtId} not found` }, { status: 404 });
+            return NextResponse.json(
+              { error: `Shirt ${item.productId || item.shirtId} not found` },
+              { status: 404 }
+            );
           }
 
           lineItems.push({
@@ -98,7 +101,17 @@ export async function POST(request: NextRequest) {
             .limit(1);
 
           if (!photoPackage) {
-            return NextResponse.json({ error: `Photo package with ID ${item.productId} not found` }, { status: 404 });
+            return NextResponse.json(
+              { error: `Photo package ${item.productId} not found` },
+              { status: 404 }
+            );
+          }
+
+          if (!photoPackage.active) {
+            return NextResponse.json(
+              { error: `Photo package "${photoPackage.name}" is no longer available` },
+              { status: 400 }
+            );
           }
 
           lineItems.push({
@@ -143,7 +156,10 @@ export async function POST(request: NextRequest) {
           .limit(1);
 
         if (!shirt) {
-          return NextResponse.json({ error: 'Shirt not found' }, { status: 404 });
+          return NextResponse.json(
+            { error: `Shirt ${id} not found` },
+            { status: 404 }
+          );
         }
 
         lineItems.push({
@@ -177,7 +193,17 @@ export async function POST(request: NextRequest) {
           .limit(1);
 
         if (!photoPackage) {
-          return NextResponse.json({ error: 'Photo package not found' }, { status: 404 });
+          return NextResponse.json(
+            { error: `Photo package ${productId} not found` },
+            { status: 404 }
+          );
+        }
+
+        if (!photoPackage.active) {
+          return NextResponse.json(
+            { error: `Photo package "${photoPackage.name}" is no longer available` },
+            { status: 400 }
+          );
         }
 
         lineItems.push({

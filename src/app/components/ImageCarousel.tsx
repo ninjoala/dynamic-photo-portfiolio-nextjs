@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { AspectRatio } from '../../../components/ui/aspect-ratio';
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem, 
-  CarouselNext, 
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
   CarouselPrevious,
-  type CarouselApi 
-} from '../../../components/ui/carousel';
+  type CarouselApi
+} from '@/components/ui/carousel';
 import { createImgixUrl } from '../../utils/imgix';
 import { generateImageAltText } from '../../utils/altTextGenerator';
 

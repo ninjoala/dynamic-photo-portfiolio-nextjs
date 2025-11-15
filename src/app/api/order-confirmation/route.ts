@@ -64,6 +64,13 @@ export async function GET(request: NextRequest) {
               eventLocation: order.productOptions?.eventLocation,
               eventType: order.productOptions?.eventType,
               additionalDetails: order.productOptions?.additionalDetails,
+              // Student information (for school photo packages)
+              studentFirstName: order.productOptions?.studentFirstName,
+              studentLastName: order.productOptions?.studentLastName,
+              teacher: order.productOptions?.teacher,
+              school: order.productOptions?.school,
+              parentFirstName: order.productOptions?.parentFirstName,
+              parentLastName: order.productOptions?.parentLastName,
             };
           }
         }
