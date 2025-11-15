@@ -36,6 +36,7 @@ export function PhotoPackageCartDrawer({ open, onOpenChange }: PhotoPackageCartD
   const [parentLastName, setParentLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [confirmEmail, setConfirmEmail] = useState('');
   const [studentFirstName, setStudentFirstName] = useState('');
   const [studentLastName, setStudentLastName] = useState('');
   const [teacher, setTeacher] = useState('');
@@ -50,9 +51,15 @@ export function PhotoPackageCartDrawer({ open, onOpenChange }: PhotoPackageCartD
     if (items.length === 0) return;
 
     // Validate all required fields
-    if (!parentFirstName || !parentLastName || !phone || !email ||
+    if (!parentFirstName || !parentLastName || !phone || !email || !confirmEmail ||
         !studentFirstName || !studentLastName || !teacher || !school) {
       setError('Please fill in all required fields');
+      return;
+    }
+
+    // Validate email match
+    if (email !== confirmEmail) {
+      setError('Email addresses do not match');
       return;
     }
 
@@ -204,6 +211,19 @@ export function PhotoPackageCartDrawer({ open, onOpenChange }: PhotoPackageCartD
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="confirmEmail" className="text-gray-900 font-bold">Confirm Email Address:</Label>
+                <Input
+                  id="confirmEmail"
+                  type="email"
+                  required
+                  value={confirmEmail}
+                  onChange={(e) => setConfirmEmail(e.target.value)}
+                  placeholder="john@example.com"
+                  className="border-gray-300"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="studentFirstName" className="text-gray-900 font-bold">Student First Name:</Label>
                 <Input
                   id="studentFirstName"
@@ -250,7 +270,7 @@ export function PhotoPackageCartDrawer({ open, onOpenChange }: PhotoPackageCartD
                   required
                   value={school}
                   onChange={(e) => setSchool(e.target.value)}
-                  placeholder="Elementary School Name"
+                  placeholder="School name"
                   className="border-gray-300"
                 />
               </div>
@@ -295,7 +315,7 @@ export function PhotoPackageCartDrawer({ open, onOpenChange }: PhotoPackageCartD
 
                 <Button
                   onClick={handleFinalCheckout}
-                  disabled={loading || !parentFirstName || !parentLastName || !phone || !email ||
+                  disabled={loading || !parentFirstName || !parentLastName || !phone || !email || !confirmEmail ||
                            !studentFirstName || !studentLastName || !teacher || !school}
                   className="w-full font-bold text-lg shadow-lg bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300"
                   size="lg"

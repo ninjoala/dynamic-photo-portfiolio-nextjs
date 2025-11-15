@@ -1,5 +1,30 @@
 import { config } from 'dotenv';
+import * as readline from 'readline';
 config({ path: '.env.local' });
+
+async function confirmDestructiveAction(): Promise<boolean> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    console.log('\n⚠️  WARNING: DESTRUCTIVE OPERATION ⚠️');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('This script will:');
+    console.log('  1. DELETE all shirts and photo packages');
+    console.log('  2. CASCADE DELETE all orders (due to foreign key constraints)');
+    console.log('  3. Re-seed with default data');
+    console.log('\n🚨 ALL ORDER DATA WILL BE PERMANENTLY LOST! 🚨');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.log('💡 Tip: Use "npm run db:update-packages" for safe updates\n');
+
+    rl.question('Are you ABSOLUTELY SURE you want to continue? (type "DELETE ALL DATA" to confirm): ', (answer) => {
+      rl.close();
+      resolve(answer === 'DELETE ALL DATA');
+    });
+  });
+}
 
 async function main() {
   // Import db AFTER dotenv config
@@ -12,7 +37,16 @@ async function main() {
       process.exit(1);
     }
 
-    console.log('Starting database seed with drizzle-seed...');
+    // Require confirmation before proceeding
+    const confirmed = await confirmDestructiveAction();
+
+    if (!confirmed) {
+      console.log('\n❌ Operation cancelled. No data was modified.');
+      console.log('💡 Use "npm run db:update-packages" for safe updates.');
+      process.exit(0);
+    }
+
+    console.log('\n⚠️  Proceeding with destructive database reset...');
 
     // Reset shirts table
     console.log('Resetting shirts table...');

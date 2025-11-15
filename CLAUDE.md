@@ -13,11 +13,61 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run generate-image-data` - Generate image data from Wasabi S3 bucket
 
 ### Database Operations
-- `npm run db:seed` - Seed database with initial shirt data using drizzle-seed
-- `npm run db:push` - Push schema changes to database
-- `npm run db:studio` - Launch Drizzle Studio database GUI
-- `npm run db:migrate` - Run database migrations
-- `npm run db:generate` - Generate new migration files
+
+#### 🟢 SAFE Operations (Production & Development)
+- `npm run db:update-packages` - **SAFE** - Update photo packages without deleting any data (upserts only)
+- `npm run db:migrate` - **SAFE** - Run database migrations (for schema changes)
+- `npm run db:studio` - **SAFE** - Launch Drizzle Studio database GUI (read-only interface)
+- `npm run db:generate` - **SAFE** - Generate new migration files from schema changes (does not modify database)
+
+#### 🔴 DESTRUCTIVE Operations (Development Only - NEVER in Production)
+- `npm run db:seed` - **DESTRUCTIVE** - Deletes ALL data (shirts, photo packages, orders) and re-seeds with defaults
+  - Requires typing "DELETE ALL DATA" to confirm
+  - CASCADE deletes orders due to foreign key constraints
+  - Only use for initial setup or complete database reset
+- `npm run db:push` - **POTENTIALLY DESTRUCTIVE** - Pushes schema changes directly to database without migrations
+  - Can cause data loss if schema changes are incompatible
+  - Use `db:generate` + `db:migrate` instead for production
+
+#### Production Database Update Workflow
+
+**For Schema Changes (adding/modifying tables/columns):**
+```bash
+# 1. Make changes to src/db/schema.ts locally
+# 2. Generate migration file
+npm run db:generate
+
+# 3. Review the generated migration in drizzle/migrations/
+# 4. Test migration locally
+npm run db:migrate
+
+# 5. Commit migration files to git
+git add drizzle/migrations/
+git commit -m "Add migration for [feature]"
+
+# 6. Deploy to production
+# Migration runs automatically via db:migrate in deployment pipeline
+# OR manually run on production database:
+DATABASE_URL=<production-url> npm run db:migrate
+```
+
+**For Data Updates (updating photo packages, prices, etc.):**
+```bash
+# 1. Update data in scripts/update-packages.ts
+# 2. Test locally
+npm run db:update-packages
+
+# 3. Deploy to production and run:
+DATABASE_URL=<production-url> npm run db:update-packages
+```
+
+**Critical Production Rules:**
+- ✅ **DO** use migrations for all schema changes
+- ✅ **DO** use `db:update-packages` for data updates
+- ✅ **DO** test migrations locally before production
+- ❌ **NEVER** use `db:seed` in production (deletes all data)
+- ❌ **NEVER** use `db:push` in production (bypasses migrations)
+- ❌ **NEVER** manually modify production database without migrations
 
 ### Package Management
 This project uses Yarn 4.5.1 as the package manager (see packageManager field in package.json).
@@ -118,13 +168,31 @@ async function main() {
 }
 ```
 
-### Drizzle Seed Usage
-- Uses `drizzle-seed` package for database seeding and reset operations
-- Seed script located at `scripts/seed.ts` with proper dynamic import pattern
-- Reset function clears tables with CASCADE to handle foreign key constraints
-- Custom shirt data insertion after reset to maintain specific product information
+### Database Scripts Overview
+
+#### `scripts/seed.ts` - Full Database Reset (DESTRUCTIVE)
+- Uses `drizzle-seed` package to completely reset database
+- **WARNING**: Deletes ALL data including orders (CASCADE)
+- Requires confirmation: must type "DELETE ALL DATA"
+- Only for initial development setup
+- See "Database Operations" section above for usage guidelines
+
+#### `scripts/update-packages.ts` - Safe Data Updates
+- **SAFE**: Updates photo packages without deleting data
+- Uses upsert logic (update existing, insert new)
+- Safe for production use
+- Does NOT touch orders or other tables
+
+#### Why Orders Get Deleted
+The `orders` table has a foreign key to `shirts.id`:
+```typescript
+shirtId: integer('shirt_id').references(() => shirts.id)
+```
+
+When `seed.ts` deletes shirts, PostgreSQL CASCADE automatically deletes related orders to maintain referential integrity. This is why you should NEVER run `db:seed` in production.
 
 ### Database Schema
-- Shirts table with JSONB fields for images array and sizes array
-- Orders table with foreign key reference to shirts
+- **Shirts table**: JSONB fields for images array and sizes array
+- **Photo Packages table**: Configurable photo packages with pricing and features
+- **Orders table**: Foreign key references to shirts (CASCADE on delete)
 - Uses Supabase PostgreSQL with pooler connection for scalability
