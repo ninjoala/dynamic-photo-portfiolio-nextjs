@@ -1,35 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Unused imports commented out since sale is concluded
-// import Stripe from 'stripe';
-// import { db } from '@/db';
-// import { shirts, orders } from '@/db/schema';
-// import { eq } from 'drizzle-orm';
-
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-//   apiVersion: '2025-07-30.basil',
-// });
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function POST(_request: NextRequest) {
-  // Sale has concluded - disable all new orders
-  return NextResponse.json(
-    { error: 'This sale has concluded. Thank you for your interest!' },
-    { status: 410 } // 410 Gone - indicates the resource is no longer available
-  );
-}
-
-// Original implementation commented out below
-/*
 import Stripe from 'stripe';
 import { db } from '@/db';
-import { shirts, orders } from '@/db/schema';
+import { shirts, photoPackages, orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-07-30.basil',
 });
 
-export async function POST_DISABLED(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     if (!db) {
       return NextResponse.json({ error: 'Database not available' }, { status: 503 });
@@ -39,7 +18,7 @@ export async function POST_DISABLED(request: NextRequest) {
 
     // Check if it's a multi-item cart checkout or single item
     const isCartCheckout = body.items && Array.isArray(body.items);
-    
+
     const lineItems: Array<{
       price_data: {
         currency: string;
@@ -53,8 +32,9 @@ export async function POST_DISABLED(request: NextRequest) {
       quantity: number;
     }> = [];
     const orderItems: Array<{
-      shirtId: number;
-      size: string;
+      productType: 'shirt' | 'photo_package';
+      productId: number;
+      productOptions: Record<string, unknown>;
       quantity: number;
       price: string;
       name: string;
@@ -62,81 +42,167 @@ export async function POST_DISABLED(request: NextRequest) {
     let customerEmail = body.email || '';
     let customerName = body.name || '';
     let customerPhone = body.phone || '';
-    
+
+    // Extract student and parent info from body level (for photo packages)
+    const studentInfo = {
+      studentFirstName: body.studentFirstName,
+      studentLastName: body.studentLastName,
+      teacher: body.teacher,
+      school: body.school,
+      parentFirstName: body.parentFirstName,
+      parentLastName: body.parentLastName,
+    };
+
     if (isCartCheckout) {
       // Handle multiple cart items
       for (const item of body.items) {
+        const productType = item.productType || 'shirt'; // Default to 'shirt' for backward compatibility
+
+        if (productType === 'shirt') {
+          const [shirt] = await db
+            .select()
+            .from(shirts)
+            .where(eq(shirts.id, item.productId || item.shirtId)) // Support both productId and legacy shirtId
+            .limit(1);
+
+          if (!shirt) {
+            return NextResponse.json({ error: `Shirt with ID ${item.productId || item.shirtId} not found` }, { status: 404 });
+          }
+
+          lineItems.push({
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `${shirt.name} - Size ${item.size}`,
+                description: shirt.description || undefined,
+                images: shirt.images?.length ? [shirt.images[0]] : undefined,
+              },
+              unit_amount: Math.round(parseFloat(shirt.price) * 100),
+            },
+            quantity: item.quantity,
+          });
+
+          orderItems.push({
+            productType: 'shirt',
+            productId: shirt.id,
+            productOptions: { size: item.size },
+            quantity: item.quantity,
+            price: shirt.price,
+            name: shirt.name
+          });
+        } else if (productType === 'photo_package') {
+          const [photoPackage] = await db
+            .select()
+            .from(photoPackages)
+            .where(eq(photoPackages.id, item.productId))
+            .limit(1);
+
+          if (!photoPackage) {
+            return NextResponse.json({ error: `Photo package with ID ${item.productId} not found` }, { status: 404 });
+          }
+
+          lineItems.push({
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: photoPackage.name,
+                description: photoPackage.description || undefined,
+              },
+              unit_amount: Math.round(parseFloat(photoPackage.price) * 100),
+            },
+            quantity: item.quantity,
+          });
+
+          orderItems.push({
+            productType: 'photo_package',
+            productId: photoPackage.id,
+            productOptions: {
+              ...studentInfo,
+            },
+            quantity: item.quantity,
+            price: photoPackage.price,
+            name: photoPackage.name
+          });
+        }
+      }
+    } else {
+      // Handle single item (backward compatibility)
+      const productType = body.productType || 'shirt'; // Default to 'shirt' for backward compatibility
+      customerEmail = body.email;
+      customerName = body.name;
+      customerPhone = body.phone;
+
+      if (productType === 'shirt') {
+        const { shirtId, productId, size, quantity } = body;
+        const id = productId || shirtId; // Support both productId and legacy shirtId
+
         const [shirt] = await db
           .select()
           .from(shirts)
-          .where(eq(shirts.id, item.shirtId))
+          .where(eq(shirts.id, id))
           .limit(1);
-        
+
         if (!shirt) {
-          return NextResponse.json({ error: `Shirt with ID ${item.shirtId} not found` }, { status: 404 });
+          return NextResponse.json({ error: 'Shirt not found' }, { status: 404 });
         }
-        
-        // Calculate item total for this specific item (used for individual order records)
 
         lineItems.push({
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `${shirt.name} - Size ${item.size}`,
+              name: `${shirt.name} - Size ${size}`,
               description: shirt.description || undefined,
               images: shirt.images?.length ? [shirt.images[0]] : undefined,
             },
             unit_amount: Math.round(parseFloat(shirt.price) * 100),
           },
-          quantity: item.quantity,
+          quantity,
         });
-        
+
         orderItems.push({
-          shirtId: item.shirtId,
-          size: item.size,
-          quantity: item.quantity,
+          productType: 'shirt',
+          productId: shirt.id,
+          productOptions: { size },
+          quantity,
           price: shirt.price,
           name: shirt.name
         });
-      }
-    } else {
-      // Handle single item (backward compatibility)
-      const { shirtId, size, quantity } = body;
-      customerEmail = body.email;
-      customerName = body.name;
-      customerPhone = body.phone;
-      
-      const [shirt] = await db
-        .select()
-        .from(shirts)
-        .where(eq(shirts.id, shirtId))
-        .limit(1);
+      } else if (productType === 'photo_package') {
+        const { productId, quantity } = body;
 
-      if (!shirt) {
-        return NextResponse.json({ error: 'Shirt not found' }, { status: 404 });
-      }
+        const [photoPackage] = await db
+          .select()
+          .from(photoPackages)
+          .where(eq(photoPackages.id, productId))
+          .limit(1);
 
-      
-      lineItems.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${shirt.name} - Size ${size}`,
-            description: shirt.description || undefined,
-            images: shirt.images?.length ? [shirt.images[0]] : undefined,
+        if (!photoPackage) {
+          return NextResponse.json({ error: 'Photo package not found' }, { status: 404 });
+        }
+
+        lineItems.push({
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: photoPackage.name,
+              description: photoPackage.description || undefined,
+            },
+            unit_amount: Math.round(parseFloat(photoPackage.price) * 100),
           },
-          unit_amount: Math.round(parseFloat(shirt.price) * 100),
-        },
-        quantity,
-      });
-      
-      orderItems.push({
-        shirtId,
-        size,
-        quantity,
-        price: shirt.price,
-        name: shirt.name
-      });
+          quantity,
+        });
+
+        orderItems.push({
+          productType: 'photo_package',
+          productId: photoPackage.id,
+          productOptions: {
+            ...studentInfo,
+          },
+          quantity,
+          price: photoPackage.price,
+          name: photoPackage.name
+        });
+      }
     }
 
     // Get base URL with robust fallback logic
@@ -186,12 +252,12 @@ export async function POST_DISABLED(request: NextRequest) {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${baseUrl}/cougar-comeback-shirt/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/cougar-comeback-shirt`,
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/checkout`,
       customer_email: customerEmail,
-      shipping_address_collection: {
+      shipping_address_collection: orderItems.some(item => item.productType === 'shirt') ? {
         allowed_countries: ['US'],
-      },
+      } : undefined, // Only require shipping for physical products (shirts)
       metadata: {
         customerName: customerName,
         itemCount: orderItems.length.toString(),
@@ -207,8 +273,13 @@ export async function POST_DISABLED(request: NextRequest) {
           email: customerEmail,
           name: customerName,
           phone: customerPhone,
-          shirtId: item.shirtId,
-          size: item.size,
+          // Legacy fields for backward compatibility
+          shirtId: item.productType === 'shirt' ? item.productId : null,
+          size: item.productType === 'shirt' ? (item.productOptions.size as string) : null,
+          // New polymorphic fields
+          orderType: item.productType,
+          productId: item.productId,
+          productOptions: item.productOptions,
           quantity: item.quantity,
           totalAmount: (parseFloat(item.price) * item.quantity).toFixed(2),
           stripeSessionId: session.id,
@@ -216,9 +287,9 @@ export async function POST_DISABLED(request: NextRequest) {
         });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       sessionId: session.id,
-      url: session.url 
+      url: session.url
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);
@@ -228,4 +299,3 @@ export async function POST_DISABLED(request: NextRequest) {
     );
   }
 }
-*/
