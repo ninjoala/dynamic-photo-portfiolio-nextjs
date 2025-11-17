@@ -181,11 +181,6 @@ function SuccessContent() {
                               <p className="text-gray-600">
                                 Quantity: {item.quantity} | Subtotal: ${item.totalAmount}
                               </p>
-                              {item.category && (
-                                <p className="text-gray-600">
-                                  Category: {item.category}
-                                </p>
-                              )}
                               {(item.studentFirstName || item.studentLastName) && (
                                 <p className="text-gray-600">
                                   Student: {item.studentFirstName} {item.studentLastName}
@@ -245,11 +240,6 @@ function SuccessContent() {
                         <p className="text-gray-600">
                           <span className="font-medium">Quantity:</span> {orderDetails.quantity}
                         </p>
-                        {orderDetails.category && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Category:</span> {orderDetails.category}
-                          </p>
-                        )}
                         {(orderDetails.studentFirstName || orderDetails.studentLastName) && (
                           <p className="text-gray-600">
                             <span className="font-medium">Student:</span> {orderDetails.studentFirstName} {orderDetails.studentLastName}

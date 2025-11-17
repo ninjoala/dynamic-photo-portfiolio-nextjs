@@ -63,6 +63,7 @@ export const orders = pgTable('orders', {
   stripePaymentIntentId: text('stripe_payment_intent_id'),
   stripeSessionId: text('stripe_session_id'),
   status: text('status').default('pending'), // pending, confirmed, expired, invalid, shipped, cancelled
+  isTest: boolean('is_test').notNull().default(false), // Automatically detected from Stripe test mode
   shippingAddress: jsonb('shipping_address').$type<{
     line1: string;
     line2?: string;

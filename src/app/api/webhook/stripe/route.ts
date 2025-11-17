@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { db } from '@/db';
 import { orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { isStripeTestMode } from '@/utils/stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-07-30.basil',
@@ -10,16 +11,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
-  const signature = request.headers.get('stripe-signature')!;
+  const signature = request.headers.get('stripe-signature');
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  // Validate required parameters before attempting verification
+  if (!signature) {
+    console.error('Missing stripe-signature header');
+    return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
+  }
+
+  if (!webhookSecret) {
+    console.error('STRIPE_WEBHOOK_SECRET not configured');
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+  }
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
@@ -34,14 +43,21 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
-        
+
+        // Extract payment intent ID
+        const paymentIntentId = typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : session.payment_intent?.id;
+
+        // Detect test mode from session ID
+        const isTest = isStripeTestMode(session.id);
+
         await db
           .update(orders)
           .set({
-            status: 'paid',
-            stripePaymentIntentId: typeof session.payment_intent === 'string' 
-              ? session.payment_intent 
-              : session.payment_intent?.id,
+            status: 'confirmed',
+            stripePaymentIntentId: paymentIntentId,
+            isTest, // Update the test flag based on session detection
             shippingAddress: session.customer_details?.address ? {
               line1: session.customer_details.address.line1!,
               line2: session.customer_details.address.line2 || undefined,
@@ -53,8 +69,8 @@ export async function POST(request: NextRequest) {
             updatedAt: new Date(),
           })
           .where(eq(orders.stripeSessionId, session.id));
-        
-        console.log(`Order ${session.id} marked as paid`);
+
+        console.log(`Order ${session.id} marked as confirmed (${isTest ? 'TEST' : 'LIVE'} mode)`);
         break;
 
       case 'checkout.session.expired':

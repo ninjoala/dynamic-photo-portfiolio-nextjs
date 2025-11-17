@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { db } from '@/db';
 import { shirts, photoPackages, orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { isStripeTestMode } from '@/utils/stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-07-30.basil',
@@ -291,6 +292,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Detect if this is a test mode transaction
+    const isTest = isStripeTestMode(session.id);
+
     // Insert multiple order records (one for each cart item)
     for (const item of orderItems) {
       await db
@@ -310,6 +314,7 @@ export async function POST(request: NextRequest) {
           totalAmount: (parseFloat(item.price) * item.quantity).toFixed(2),
           stripeSessionId: session.id,
           status: 'pending',
+          isTest, // Automatically detected from Stripe session ID
         });
     }
 
