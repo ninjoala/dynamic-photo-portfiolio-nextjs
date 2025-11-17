@@ -2,6 +2,8 @@
  * Stripe utility functions for detecting test mode and handling Stripe-related operations
  */
 
+import { isStripeTestEnvironment } from './env';
+
 /**
  * Determines if a Stripe session is in test mode
  *
@@ -10,7 +12,7 @@
  *
  * Detection strategy:
  * 1. Check if session ID starts with 'cs_test_' (Stripe test session)
- * 2. Fallback: Check if STRIPE_SECRET_KEY starts with 'sk_test_'
+ * 2. Fallback: Check if STRIPE_SECRET_KEY starts with 'sk_test_' (via validated env)
  *
  * Examples:
  * - Production session: cs_live_a1b2c3...
@@ -33,13 +35,8 @@ export function isStripeTestMode(stripeSessionId?: string | null): boolean {
   }
 
   // Fallback detection: Check if the Stripe secret key is a test key
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-  if (stripeSecretKey) {
-    return stripeSecretKey.startsWith('sk_test_');
-  }
-
-  // Default to false (assume production for safety)
-  return false;
+  // Uses validated environment variable from centralized env module
+  return isStripeTestEnvironment();
 }
 
 /**

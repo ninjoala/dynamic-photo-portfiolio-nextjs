@@ -3,8 +3,9 @@ import { orders } from '../src/db/schema';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { isStripeTestMode } from '../src/utils/stripe';
+import { serverEnv } from '../src/utils/env';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(serverEnv.STRIPE_SECRET_KEY, {
   apiVersion: '2025-07-30.basil',
 });
 
