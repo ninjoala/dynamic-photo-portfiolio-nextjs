@@ -292,17 +292,6 @@ function SuccessContent() {
               )}
 
               {/* Additional information based on order type */}
-              {isPhotoPackageOrder && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
-                  <h3 className="font-semibold text-blue-900 mb-2">What happens next?</h3>
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• We will contact you within 24 hours to coordinate details</li>
-                    <li>• Your photos will be edited and delivered according to the package timeline</li>
-                    <li>• You will receive a download link via email when ready</li>
-                  </ul>
-                </div>
-              )}
-
               {isShirtOrder && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
                   <h3 className="font-semibold text-blue-900 mb-2">Shipping Information</h3>

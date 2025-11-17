@@ -229,6 +229,19 @@ export async function POST(request: NextRequest) {
         const databasePrice = parseFloat(shirt.price);
         const priceInCents = Math.round(databasePrice * 100);
 
+        // SECURITY: Validate client price matches database price (if provided)
+        // This catches price mismatches from stale cart data or manipulation attempts
+        if (item.price !== undefined) {
+          const clientPrice = parseFloat(item.price);
+          // Allow 1 cent tolerance for floating point rounding
+          if (Math.abs(clientPrice - databasePrice) > 0.01) {
+            return NextResponse.json(
+              { error: `Price mismatch for "${shirt.name}". Please refresh your cart and try again.` },
+              { status: 400 }
+            );
+          }
+        }
+
         // Validate size is available
         const availableSizes = shirt.sizes || [];
         if (item.size && !availableSizes.includes(item.size)) {
@@ -285,6 +298,19 @@ export async function POST(request: NextRequest) {
         // This prevents price manipulation attacks
         const databasePrice = parseFloat(photoPackage.price);
         const priceInCents = Math.round(databasePrice * 100);
+
+        // SECURITY: Validate client price matches database price (if provided)
+        // This catches price mismatches from stale cart data or manipulation attempts
+        if (item.price !== undefined) {
+          const clientPrice = parseFloat(item.price);
+          // Allow 1 cent tolerance for floating point rounding
+          if (Math.abs(clientPrice - databasePrice) > 0.01) {
+            return NextResponse.json(
+              { error: `Price mismatch for "${photoPackage.name}". Please refresh your cart and try again.` },
+              { status: 400 }
+            );
+          }
+        }
 
         lineItems.push({
           price_data: {
