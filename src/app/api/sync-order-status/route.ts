@@ -3,8 +3,10 @@ import Stripe from 'stripe';
 import { db } from '@/db';
 import { orders } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { isStripeTestMode } from '@/utils/stripe';
+import { serverEnv } from '@/utils/env';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(serverEnv.STRIPE_SECRET_KEY, {
   apiVersion: '2025-07-30.basil',
 });
 
@@ -13,14 +15,54 @@ export async function POST(request: NextRequest) {
     if (!db) {
       return NextResponse.json({ error: 'Database not available' }, { status: 503 });
     }
-    
-    const { orderId, sessionId } = await request.json();
+
+    let orderId: number | undefined;
+    let sessionId: string | undefined;
+
+    try {
+      const body = await request.json();
+      orderId = body.orderId;
+      sessionId = body.sessionId;
+    } catch (error) {
+      return NextResponse.json({
+        error: 'Invalid JSON in request body',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 400 });
+    }
+
+    // Validate input parameters
+    if (!orderId && !sessionId) {
+      return NextResponse.json({
+        error: 'Missing required parameter: orderId or sessionId'
+      }, { status: 400 });
+    }
+
+    if (orderId !== undefined && (typeof orderId !== 'number' || orderId <= 0)) {
+      return NextResponse.json({
+        error: 'Invalid orderId: must be a positive number'
+      }, { status: 400 });
+    }
+
+    if (sessionId !== undefined) {
+      if (typeof sessionId !== 'string') {
+        return NextResponse.json({
+          error: 'Invalid sessionId: must be a string'
+        }, { status: 400 });
+      }
+
+      // Validate Stripe session ID format: cs_test_xxx or cs_live_xxx
+      if (!/^cs_(test|live)_[a-zA-Z0-9]+$/.test(sessionId)) {
+        return NextResponse.json({
+          error: 'Invalid sessionId format: must match cs_test_* or cs_live_*'
+        }, { status: 400 });
+      }
+    }
 
     // Get the order from database
     const [order] = await db
       .select()
       .from(orders)
-      .where(sessionId ? eq(orders.stripeSessionId, sessionId) : eq(orders.id, orderId))
+      .where(sessionId ? eq(orders.stripeSessionId, sessionId) : eq(orders.id, orderId!))
       .limit(1);
 
     if (!order) {
@@ -47,10 +89,10 @@ export async function POST(request: NextRequest) {
 
       if (session.payment_status === 'paid') {
         newStatus = 'confirmed';
-        paymentIntentId = typeof session.payment_intent === 'string' 
-          ? session.payment_intent 
+        paymentIntentId = typeof session.payment_intent === 'string'
+          ? session.payment_intent
           : session.payment_intent?.id;
-        
+
         // Update shipping address if available (using customer_details which has shipping info)
         if (session.customer_details?.address) {
           shippingAddress = {
@@ -68,12 +110,16 @@ export async function POST(request: NextRequest) {
         newStatus = 'pending';
       }
 
+      // Detect test mode from session ID
+      const isTest = isStripeTestMode(session.id);
+
       // Update the order in the database
       const [updatedOrder] = await db
         .update(orders)
         .set({
           status: newStatus,
           stripePaymentIntentId: paymentIntentId,
+          isTest,
           shippingAddress,
           updatedAt: new Date(),
         })
@@ -153,18 +199,21 @@ export async function GET() {
 
       try {
         const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
-        
+
         let newStatus = 'pending';
         let paymentIntentId = null;
 
         if (session.payment_status === 'paid') {
           newStatus = 'confirmed';
-          paymentIntentId = typeof session.payment_intent === 'string' 
-          ? session.payment_intent 
+          paymentIntentId = typeof session.payment_intent === 'string'
+          ? session.payment_intent
           : session.payment_intent?.id;
         } else if (session.status === 'expired') {
           newStatus = 'expired';
         }
+
+        // Detect test mode from session ID
+        const isTest = isStripeTestMode(session.id);
 
         if (newStatus !== order.status) {
           await db
@@ -172,6 +221,7 @@ export async function GET() {
             .set({
               status: newStatus,
               stripePaymentIntentId: paymentIntentId,
+              isTest,
               updatedAt: new Date(),
             })
             .where(eq(orders.id, order.id));
@@ -180,12 +230,14 @@ export async function GET() {
             orderId: order.id,
             previousStatus: order.status,
             newStatus,
+            isTest,
             synced: true,
           });
         } else {
           results.push({
             orderId: order.id,
             status: order.status,
+            isTest,
             synced: false,
             reason: 'Status unchanged',
           });

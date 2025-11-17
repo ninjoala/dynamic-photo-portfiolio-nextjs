@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Shirt } from '@/db/schema';
-import { Button } from '../../../components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCart } from '../contexts/CartContext';
 import { CartIcon } from '../components/CartIcon';
 import { CartDrawer } from '../components/CartDrawer';

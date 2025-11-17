@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Card, CardContent } from '../../../components/ui/card';
-import { AspectRatio } from '../../../components/ui/aspect-ratio';
-import { Skeleton } from '../../../components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Skeleton } from '@/components/ui/skeleton';
 import { fetchImageData } from '../../utils/fetchImageData';
 import { generateImageAltText } from '../../utils/altTextGenerator';
 
