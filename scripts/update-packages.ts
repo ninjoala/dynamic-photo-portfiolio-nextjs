@@ -80,6 +80,15 @@ async function main() {
                 active: true,
                 displayOrder: 6,
             },
+            {
+                name: 'Package H - WALLET',
+                category: 'real-estate',
+                description: '4 Wallet Sized Prints',
+                price: '10.00',
+                features: [],
+                active: true,
+                displayOrder: 7,
+            },
         ];
 
         // Upsert each package (update if exists, insert if doesn't)
