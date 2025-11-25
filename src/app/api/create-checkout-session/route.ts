@@ -7,6 +7,9 @@ import { isStripeTestMode } from '@/utils/stripe';
 import { serverEnv } from '@/utils/env';
 import crypto from 'crypto';
 
+// Ordering deadline: Midnight ET on Nov 25, 2025 = 5 AM UTC
+const ORDER_DEADLINE = new Date('2025-11-25T05:00:00.000Z');
+
 const stripe = new Stripe(serverEnv.STRIPE_SECRET_KEY, {
   apiVersion: '2025-07-30.basil',
 });
@@ -136,6 +139,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Database not available. Please try again later.' },
         { status: 503 }
+      );
+    }
+
+    // Check if ordering deadline has passed
+    if (new Date() >= ORDER_DEADLINE) {
+      return NextResponse.json(
+        { error: 'Ordering has closed. The deadline has passed.' },
+        { status: 400 }
       );
     }
 
